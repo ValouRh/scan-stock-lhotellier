@@ -202,16 +202,28 @@
     return fetch(url, { method: "GET" }).then(function(r){ if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); });
   }
 
-  // Load the QR-generation library with a fallback CDN, same pattern as jsQR in index.html.
+  // Load the QR-generation library, trying several CDN mirrors in turn —
+  // same pattern as jsQR in index.html, with one more fallback and clearer
+  // console diagnostics since this one has caused loading trouble before.
+  var QR_LIB_URLS = [
+    "https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js",
+    "https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js",
+    "https://unpkg.com/qrcodejs@1.0.0/qrcode.min.js"
+  ];
   var qrLibReady = new Promise(function(resolve){
-    function tryLoad(url, fallbackUrl){
+    function tryLoad(i){
+      if (i >= QR_LIB_URLS.length){ console.error("QR lib: toutes les sources ont échoué"); resolve(false); return; }
+      var url = QR_LIB_URLS[i];
       var s = document.createElement("script");
       s.src = url;
-      s.onload = function(){ resolve(typeof QRCode === "function"); };
-      s.onerror = function(){ if (fallbackUrl) tryLoad(fallbackUrl, null); else resolve(false); };
+      s.onload = function(){
+        if (typeof QRCode === "function"){ resolve(true); }
+        else { console.error("QR lib: chargée depuis " + url + " mais QRCode absent"); tryLoad(i + 1); }
+      };
+      s.onerror = function(){ console.error("QR lib: échec de chargement depuis " + url); tryLoad(i + 1); };
       document.head.appendChild(s);
     }
-    tryLoad("https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js", "https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js");
+    tryLoad(0);
   });
 
   // qrcodejs draws into a DOM element it creates itself (a <canvas>, or an
@@ -334,7 +346,7 @@
     var desig = $("f-qr-desig").value.trim();
     if (!ref){ toast("Renseigne une référence"); $("f-qr-ref").focus(); return; }
     qrLibReady.then(function(loaded){
-      if (!loaded){ toast("Librairie de génération QR indisponible — vérifie ta connexion"); return; }
+      if (!loaded){ toast("Librairie de génération QR indisponible — recharge la page (Ctrl+Maj+R) ou réessaie plus tard"); return; }
       currentQrRef = ref; currentQrDesig = desig;
       drawLabel(ref, desig);
       $("qr-result-card").hidden = false;
