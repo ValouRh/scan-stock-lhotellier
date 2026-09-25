@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Administration — Scan Stock Lhotellier</title>
+<style>
+  :root{
+    --bg:#F7F5EF; --surface:#FFFFFF; --surface-2:#EDEAE0; --ink:#16323D; --muted:#5B6B72;
+    --border:#DDD7C7; --accent:#2E86AB; --accent-ink:#FFFFFF; --accent-soft:#E4F0F5;
+    --success:#3E8E5A; --success-soft:#E4F0E8; --warning:#B9822E; --warning-soft:#F5EEDD;
+    --danger:#B0453D; --danger-soft:#F6E4E1; --radius:16px; --radius-sm:10px;
+    color-scheme:light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#101F26; --surface:#172931; --surface-2:#1E333C; --ink:#EDEAE0; --muted:#9FB2B8;
+      --border:#2B4048; --accent:#6FB8D9; --accent-ink:#0B1A20; --accent-soft:#1E3742;
+      --success:#79C596; --success-soft:#1C3327; --warning:#E0B25C; --warning-soft:#332A16;
+      --danger:#E28880; --danger-soft:#3A211F; color-scheme:dark;
+    }
+  }
+  *{box-sizing:border-box}
+  [hidden]{display:none !important;}
+  body{background:var(--bg); color:var(--ink); font-family:'IBM Plex Sans',system-ui,sans-serif; margin:0; padding:20px 20px 60px;}
+  h1,h2,h3{font-family:'IBM Plex Sans',system-ui,sans-serif; margin:0;}
+  .mono{font-family:'IBM Plex Mono','SFMono-Regular',monospace;}
+  .wrap{max-width:920px; margin:0 auto;}
+  .row{display:flex; align-items:center; gap:10px;}
+  .space-between{justify-content:space-between;}
+  header.app{display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; flex-wrap:wrap; gap:12px;}
+  header.app .brand{display:flex; flex-direction:column; gap:2px;}
+  header.app .brand .kicker{font-size:12px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:var(--accent);}
+  header.app .brand h1{font-size:21px; font-weight:700;}
+  .card{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:20px; margin-bottom:16px;}
+  label{font-size:12.5px; font-weight:600; color:var(--muted); display:block; margin-bottom:6px;}
+  input[type=text], select{
+    width:100%; font-size:14px; font-family:inherit; color:var(--ink); background:var(--surface-2);
+    border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px 12px; appearance:none;
+  }
+  .field{display:flex; flex-direction:column;}
+  .btn{border:none; border-radius:999px; font-size:14px; font-weight:600; padding:10px 18px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:8px; font-family:inherit;}
+  .btn:active{transform:scale(0.98);}
+  .btn:disabled{opacity:0.45; cursor:not-allowed;}
+  .btn-primary{background:var(--accent); color:var(--accent-ink);}
+  .btn-secondary{background:var(--surface-2); color:var(--ink); border:1px solid var(--border);}
+  .btn-ghost{background:transparent; color:var(--accent); padding:8px 10px;}
+  .btn-block{width:100%;}
+  .hint{font-size:12.5px; color:var(--muted); line-height:1.4;}
+  .tabs{display:flex; gap:6px; background:var(--surface-2); padding:4px; border-radius:999px; width:fit-content; margin-bottom:16px;}
+  .tab{padding:9px 20px; border-radius:999px; font-size:13.5px; font-weight:600; color:var(--muted); cursor:pointer;}
+  .tab.active{background:var(--surface); color:var(--ink); box-shadow:0 1px 3px rgba(0,0,0,0.08);}
+  .chip-list{display:flex; flex-wrap:wrap; gap:8px;}
+  .chip{display:flex; align-items:center; gap:6px; background:var(--surface-2); border:1px solid var(--border); border-radius:999px; padding:7px 8px 7px 13px; font-size:13.5px;}
+  .chip button{border:none; background:none; color:var(--muted); cursor:pointer; width:20px; height:20px; display:flex; align-items:center; justify-content:center; border-radius:50%;}
+  .chip button:active{background:var(--danger-soft); color:var(--danger);}
+  .inline-add{display:flex; gap:8px;}
+  .inline-add input{flex:1;}
+  table.ref-table{width:100%; border-collapse:collapse; font-size:13.5px;}
+  table.ref-table th{text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:var(--muted); padding:0 10px 10px; font-weight:600; white-space:nowrap;}
+  table.ref-table td{padding:9px 10px; border-top:1px solid var(--border); vertical-align:top;}
+  table.ref-table .edit-btn{border:none; background:transparent; color:var(--accent); cursor:pointer; font-size:13px; font-weight:600;}
+  .empty-state{text-align:center; padding:30px 10px; color:var(--muted); font-size:14px;}
+  .overlay{position:fixed; inset:0; background:rgba(16,31,38,0.6); display:flex; align-items:center; justify-content:center; z-index:50; padding:20px;}
+  .sheet{background:var(--bg); width:100%; max-width:380px; border-radius:20px; padding:26px 22px; display:flex; flex-direction:column; gap:16px;}
+  .toast{position:fixed; left:50%; transform:translateX(-50%); bottom:24px; background:var(--ink); color:var(--bg); padding:11px 18px; border-radius:999px; font-size:13.5px; font-weight:600; box-shadow:0 6px 20px rgba(0,0,0,0.25); z-index:80; opacity:0; pointer-events:none; transition:opacity .2s, transform .2s;}
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(-6px);}
+  .qr-form{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+  @media (max-width:520px){ .qr-form{grid-template-columns:1fr;} }
+  .qr-preview{display:flex; flex-direction:column; align-items:center; gap:14px; padding-top:6px;}
+  .qr-preview canvas{background:#fff; border-radius:12px; box-shadow:0 1px 4px rgba(0,0,0,0.12);}
+  .qr-label-canvas{background:#fff; border-radius:12px; box-shadow:0 1px 4px rgba(0,0,0,0.12);}
+  .search-row{display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap;}
+  .search-row input{flex:1; min-width:180px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="app">
+    <div class="brand">
+      <p class="kicker">Lhotellier Eau</p>
+      <h1>Administration</h1>
+    </div>
+    <div class="row" id="header-actions" hidden>
+      <button class="btn btn-secondary" id="btn-refresh">Actualiser</button>
+    </div>
+  </header>
+
+  <div id="app-body" hidden>
+    <div class="tabs">
+      <div class="tab active" data-tab="qr">Générer un QR code</div>
+      <div class="tab" data-tab="referentiel">Référentiel</div>
+      <div class="tab" data-tab="magasins">Magasins</div>
+    </div>
+
+    <!-- ---------- QR generator ---------- -->
+    <div id="view-qr">
+      <div class="card">
+        <h3 style="font-size:15px; margin-bottom:4px;">Nouvel article / QR code</h3>
+        <p class="hint" style="margin-bottom:16px;">Renseigne la référence et la désignation de l'article. Le QR code encode la référence — c'est ce que l'appli lit au scan. En validant, l'article est ajouté (ou mis à jour) dans le référentiel partagé : sa désignation apparaîtra automatiquement dans le panier de tous les techniciens dès qu'ils scannent cette référence.</p>
+        <div class="qr-form">
+          <div class="field">
+            <label for="f-qr-ref">Référence</label>
+            <input type="text" id="f-qr-ref" class="mono" placeholder="Ex. 00042" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="f-qr-desig">Désignation</label>
+            <input type="text" id="f-qr-desig" placeholder="Ex. DOUCHE COMBINE LAVEUR D YEUX" autocomplete="off">
+          </div>
+        </div>
+        <p class="hint" id="qr-existing-hint" style="margin-top:8px; color:var(--accent);" hidden></p>
+        <div class="row" style="margin-top:16px; gap:10px; flex-wrap:wrap;">
+          <button class="btn btn-primary" id="btn-qr-generate">Générer le QR code</button>
+          <button class="btn btn-secondary" id="btn-qr-save" disabled>Ajouter au référentiel</button>
+        </div>
+      </div>
+
+      <div class="card" id="qr-result-card" hidden>
+        <h3 style="font-size:15px; margin-bottom:14px;">Étiquette à imprimer</h3>
+        <div class="qr-preview">
+          <canvas class="qr-label-canvas" id="qr-label-canvas"></canvas>
+          <button class="btn btn-secondary" id="btn-qr-download">Télécharger l'étiquette (PNG)</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ---------- référentiel ---------- -->
+    <div id="view-referentiel" hidden>
+      <div class="card">
+        <div class="search-row">
+          <input type="text" id="f-ref-search" placeholder="Rechercher une référence ou une désignation…">
+        </div>
+        <p class="hint" id="ref-count" style="margin-bottom:10px;">—</p>
+        <div style="overflow-x:auto; max-height:60vh; overflow-y:auto;">
+          <table class="ref-table" id="ref-table">
+            <thead><tr><th>Référence</th><th>Désignation</th><th></th></tr></thead>
+            <tbody id="ref-body"></tbody>
+          </table>
+        </div>
+        <p class="empty-state" id="ref-empty" hidden>Aucun article ne correspond à cette recherche.</p>
+      </div>
+    </div>
+
+    <!-- ---------- magasins ---------- -->
+    <div id="view-magasins" hidden>
+      <div class="card">
+        <p class="hint" style="margin-bottom:10px;">Les magasins Lhotellier Eau. Modifiable si un magasin ouvre, ferme ou change de nom.</p>
+        <div class="chip-list" id="magasins-chips"></div>
+        <div class="inline-add" style="margin-top:12px;">
+          <input type="text" id="f-new-magasin" placeholder="Nom du magasin">
+          <button class="btn btn-secondary" id="btn-add-magasin">Ajouter</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="pin-overlay">
+    <div class="sheet">
+      <h2 style="font-size:19px;">Accès administration</h2>
+      <p class="hint">Réservé aux administrateurs — gestion du référentiel, des QR codes et des magasins.</p>
+      <div class="field">
+        <label for="f-pin">Code d'accès</label>
+        <input type="text" inputmode="numeric" id="f-pin" placeholder="••••">
+      </div>
+      <p class="hint" id="pin-error" style="color:var(--danger); display:none;">Code incorrect.</p>
+      <button class="btn btn-primary" id="btn-pin-ok">Déverrouiller</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<script>
+(function(){
+  "use strict";
+
+  // Même URL Apps Script que index.html — copie-la ici si tu la changes un jour.
+  var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbws_KncvOF-MsVSl-SeqIocZ16dRbTlhp8eZmHDw04ax3kZ7DNCFQOX-S1D_5JvyjAq/exec";
+
+  // Code admin — identique à celui utilisé côté index.html / historique.html.
+  // Pour le changer, modifie cette valeur ici ET dans les deux autres fichiers.
+  var ADMIN_PIN = "2500";
+  var DEFAULT_MAGASINS = ["Conty","CCTC","Blangy","Longueau","Beauvais"];
+
+  function $(id){ return document.getElementById(id); }
+  function ls_get(k, fallback){ try { var v = localStorage.getItem(k); return v === null ? fallback : v; } catch(e){ return fallback; } }
+  function ls_set(k, v){ try { localStorage.setItem(k, v); } catch(e){} }
+  function escapeHtml(s){ return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+  function toast(msg){
+    var t = $("toast"); t.textContent = msg; t.classList.add("show");
+    clearTimeout(toast._h); toast._h = setTimeout(function(){ t.classList.remove("show"); }, 2200);
+  }
+
+  function apiGet(action){
+    return fetch(APPS_SCRIPT_URL + "?action=" + encodeURIComponent(action), { method: "GET" })
+      .then(function(r){ if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); });
+  }
+  function apiPost(action, payload){
+    var url = APPS_SCRIPT_URL + "?action=" + encodeURIComponent(action) + "&payload=" + encodeURIComponent(JSON.stringify(payload || {}));
+    return fetch(url, { method: "GET" }).then(function(r){ if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); });
+  }
+
+  // Load the QR-generation library with a fallback CDN, same pattern as jsQR in index.html.
+  var qrLibReady = new Promise(function(resolve){
+    function tryLoad(url, fallbackUrl){
+      var s = document.createElement("script");
+      s.src = url;
+      s.onload = function(){ resolve(typeof QRCode !== "undefined"); };
+      s.onerror = function(){ if (fallbackUrl) tryLoad(fallbackUrl, null); else resolve(false); };
+      document.head.appendChild(s);
+    }
+    tryLoad("https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js", "https://unpkg.com/qrcode@1.5.3/build/qrcode.min.js");
+  });
+
+  // ---------- PIN gate ----------
+  var unlocked = ls_get("qrstock_role", "") === "admin";
+  function unlock(){
+    unlocked = true;
+    ls_set("qrstock_role", "admin");
+    $("pin-overlay").hidden = true;
+    $("app-body").hidden = false;
+    $("header-actions").hidden = false;
+    loadAll();
+  }
+  if (unlocked) unlock();
+  $("btn-pin-ok").addEventListener("click", checkPin);
+  $("f-pin").addEventListener("keydown", function(e){ if (e.key === "Enter") checkPin(); });
+  function checkPin(){
+    var val = $("f-pin").value.trim();
+    if (val === ADMIN_PIN) unlock();
+    else $("pin-error").style.display = "block";
+  }
+
+  // ---------- tabs ----------
+  Array.prototype.forEach.call(document.querySelectorAll(".tab"), function(tab){
+    tab.addEventListener("click", function(){
+      Array.prototype.forEach.call(document.querySelectorAll(".tab"), function(t){ t.classList.toggle("active", t === tab); });
+      $("view-qr").hidden = tab.dataset.tab !== "qr";
+      $("view-referentiel").hidden = tab.dataset.tab !== "referentiel";
+      $("view-magasins").hidden = tab.dataset.tab !== "magasins";
+    });
+  });
+
+  // ---------- state ----------
+  var referentiel = {}; // { ref: designation }
+  var magasins = DEFAULT_MAGASINS.slice();
+
+  function loadAll(){
+    loadReferentiel();
+    loadMagasins();
+  }
+  $("btn-refresh").addEventListener("click", function(){ toast("Actualisation…"); loadAll(); });
+
+  function loadReferentiel(){
+    apiGet("getReferentiel").then(function(res){
+      referentiel = (res && res.referentiel) || {};
+      renderRefTable();
+    }).catch(function(err){ console.error(err); toast("Impossible de charger le référentiel"); });
+  }
+  function loadMagasins(){
+    apiGet("getData").then(function(res){
+      if (!res || !res.ok) throw new Error((res && res.error) || "erreur");
+      magasins = (Array.isArray(res.magasins) && res.magasins.length) ? res.magasins : DEFAULT_MAGASINS.slice();
+      renderMagasinsChips();
+    }).catch(function(err){ console.error(err); toast("Impossible de charger les magasins"); });
+  }
+
+  // ================================================================
+  // GÉNÉRATEUR DE QR CODE — encode la référence (ce que l'appli lit au
+  // scan) et compose une étiquette avec le QR code + "référence —
+  // désignation" en dessous, dans le même esprit que l'ancien classeur
+  // Excel de génération de QR codes. En validant, la référence et sa
+  // désignation sont écrites (ajoutées ou mises à jour) dans l'onglet
+  // "Referentiel" du Google Sheet, donc visibles partout immédiatement.
+  // ================================================================
+  var currentQrRef = "";
+  var currentQrDesig = "";
+
+  $("f-qr-ref").addEventListener("input", function(){
+    var ref = this.value.trim();
+    var known = ref && referentiel[ref] != null ? referentiel[ref] : "";
+    if (known){
+      $("qr-existing-hint").hidden = false;
+      $("qr-existing-hint").textContent = "Référence déjà dans le référentiel — désignation actuelle : « " + known + " ». Génère à nouveau pour mettre à jour l'étiquette ou la désignation.";
+      if (!$("f-qr-desig").value.trim()) $("f-qr-desig").value = known;
+    } else {
+      $("qr-existing-hint").hidden = true;
+    }
+    $("qr-result-card").hidden = true;
+    $("btn-qr-save").disabled = true;
+  });
+  $("f-qr-desig").addEventListener("input", function(){
+    $("qr-result-card").hidden = true;
+    $("btn-qr-save").disabled = true;
+  });
+
+  $("btn-qr-generate").addEventListener("click", function(){
+    var ref = $("f-qr-ref").value.trim();
+    var desig = $("f-qr-desig").value.trim();
+    if (!ref){ toast("Renseigne une référence"); $("f-qr-ref").focus(); return; }
+    qrLibReady.then(function(loaded){
+      if (!loaded){ toast("Librairie de génération QR indisponible — vérifie ta connexion"); return; }
+      currentQrRef = ref; currentQrDesig = desig;
+      drawLabel(ref, desig);
+      $("qr-result-card").hidden = false;
+      $("btn-qr-save").disabled = false;
+    });
+  });
+
+  function drawLabel(ref, desig){
+    // 1) generate the QR code itself onto an offscreen canvas
+    var qrCanvas = document.createElement("canvas");
+    QRCode.toCanvas(qrCanvas, ref, { width: 260, margin: 1, errorCorrectionLevel: "M" }, function(err){
+      if (err){ console.error(err); toast("Erreur lors de la génération du QR code"); return; }
+      // 2) compose the final label: QR code + "reference — designation" text below,
+      //    echoing the reference/designation layout of the original Excel labels.
+      var pad = 24;
+      var qrSize = qrCanvas.width;
+      var lineH = 26;
+      var desigLines = wrapText(desig ? (ref + " — " + desig) : ref, 34);
+      if (!desig) desigLines = [ref];
+      var textH = desigLines.length * lineH;
+      var canvas = $("qr-label-canvas");
+      var W = qrSize + pad * 2;
+      var H = qrSize + pad * 2 + textH + 10;
+      canvas.width = W; canvas.height = H;
+      var ctx = canvas.getContext("2d");
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, 0, W, H);
+      ctx.drawImage(qrCanvas, pad, pad, qrSize, qrSize);
+      ctx.fillStyle = "#16323D";
+      ctx.textAlign = "center";
+      ctx.font = "600 17px 'IBM Plex Mono', monospace";
+      desigLines.forEach(function(line, i){
+        ctx.fillText(line, W / 2, pad + qrSize + 22 + i * lineH);
+      });
+    });
+  }
+
+  // simple char-count word wrap for the label caption
+  function wrapText(text, maxChars){
+    var words = String(text).split(/\s+/);
+    var lines = [], cur = "";
+    words.forEach(function(w){
+      var test = cur ? cur + " " + w : w;
+      if (test.length > maxChars && cur){ lines.push(cur); cur = w; }
+      else { cur = test; }
+    });
+    if (cur) lines.push(cur);
+    return lines;
+  }
+
+  $("btn-qr-download").addEventListener("click", function(){
+    var canvas = $("qr-label-canvas");
+    var a = document.createElement("a");
+    a.href = canvas.toDataURL("image/png");
+    a.download = "qr-" + (currentQrRef || "article") + ".png";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  });
+
+  $("btn-qr-save").addEventListener("click", function(){
+    if (!currentQrRef) return;
+    $("btn-qr-save").disabled = true;
+    apiPost("addReferentiel", { ref: currentQrRef, designation: currentQrDesig }).then(function(res){
+      if (!res || !res.ok) throw new Error((res && res.error) || "erreur");
+      referentiel = res.referentiel || referentiel;
+      renderRefTable();
+      toast("Article ajouté au référentiel");
+    }).catch(function(err){
+      console.error(err);
+      toast("Échec de l'ajout au référentiel");
+      $("btn-qr-save").disabled = false;
+    });
+  });
+
+  // ================================================================
+  // RÉFÉRENTIEL — recherche + édition rapide de la désignation d'un
+  // article existant, sans repasser par le générateur de QR code.
+  // ================================================================
+  function renderRefTable(){
+    var q = $("f-ref-search").value.trim().toLowerCase();
+    var entries = Object.keys(referentiel).map(function(ref){ return { ref: ref, desig: referentiel[ref] }; });
+    entries.sort(function(a,b){ return a.ref.localeCompare(b.ref, "fr", { numeric: true }); });
+    if (q){
+      entries = entries.filter(function(e){
+        return e.ref.toLowerCase().indexOf(q) !== -1 || (e.desig || "").toLowerCase().indexOf(q) !== -1;
+      });
+    }
+    $("ref-count").textContent = entries.length + " article" + (entries.length > 1 ? "s" : "") + " (sur " + Object.keys(referentiel).length + " au total)";
+    $("ref-empty").hidden = entries.length !== 0;
+    $("ref-body").innerHTML = entries.map(function(e){
+      return "<tr>" +
+        '<td class="mono">' + escapeHtml(e.ref) + "</td>" +
+        '<td>' + escapeHtml(e.desig) + "</td>" +
+        '<td><button type="button" class="edit-btn" data-ref="' + escapeHtml(e.ref) + '">Éditer</button></td>' +
+        "</tr>";
+    }).join("");
+    Array.prototype.forEach.call($("ref-body").querySelectorAll(".edit-btn"), function(btn){
+      btn.addEventListener("click", function(){ editFromTable(btn.dataset.ref); });
+    });
+  }
+  $("f-ref-search").addEventListener("input", renderRefTable);
+
+  function editFromTable(ref){
+    $("f-qr-ref").value = ref;
+    $("f-qr-desig").value = referentiel[ref] || "";
+    Array.prototype.forEach.call(document.querySelectorAll(".tab"), function(t){ t.classList.toggle("active", t.dataset.tab === "qr"); });
+    $("view-qr").hidden = false;
+    $("view-referentiel").hidden = true;
+    $("view-magasins").hidden = true;
+    $("qr-existing-hint").hidden = true;
+    $("qr-result-card").hidden = true;
+    $("btn-qr-save").disabled = true;
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    $("f-qr-desig").focus();
+  }
+
+  // ================================================================
+  // MAGASINS
+  // ================================================================
+  function renderMagasinsChips(){
+    var el = $("magasins-chips");
+    if (!magasins.length){ el.innerHTML = '<p class="hint" style="margin:0;">Rien pour l\'instant — ajoute le premier ci-dessous.</p>'; return; }
+    el.innerHTML = magasins.map(function(name, i){
+      return '<span class="chip">' + escapeHtml(name) + '<button type="button" data-idx="' + i + '" aria-label="Retirer">&times;</button></span>';
+    }).join("");
+    Array.prototype.forEach.call(el.querySelectorAll("button"), function(btn){
+      btn.addEventListener("click", function(){ removeMagasin(parseInt(btn.dataset.idx,10)); });
+    });
+  }
+  function removeMagasin(idx){
+    var arr = magasins.slice();
+    arr.splice(idx, 1);
+    magasins = arr; renderMagasinsChips();
+    apiPost("setMagasins", { list: arr }).then(function(res){
+      if (!res || !res.ok) throw new Error((res && res.error) || "erreur");
+      toast("Magasin retiré");
+    }).catch(function(){ toast("Échec de la mise à jour"); loadMagasins(); });
+  }
+  function addMagasin(value){
+    if (!value) return;
+    if (magasins.indexOf(value) !== -1){ toast("Déjà dans la liste"); return; }
+    var arr = magasins.slice(); arr.push(value);
+    magasins = arr; renderMagasinsChips();
+    apiPost("setMagasins", { list: arr }).then(function(res){
+      if (!res || !res.ok) throw new Error((res && res.error) || "erreur");
+      toast("Magasin ajouté");
+    }).catch(function(){ toast("Échec de l'ajout"); loadMagasins(); });
+  }
+  $("btn-add-magasin").addEventListener("click", function(){
+    var v = $("f-new-magasin").value.trim(); if (!v) return;
+    addMagasin(v); $("f-new-magasin").value = "";
+  });
+  $("f-new-magasin").addEventListener("keydown", function(e){ if (e.key === "Enter") $("btn-add-magasin").click(); });
+})();
+</script>
+</body>
+</html>
