@@ -185,10 +185,10 @@
       <h2 style="font-size:19px;">Accès réservé</h2>
       <p class="hint">Historique et statistiques des sorties — réservé au magasinier et à l'administration.</p>
       <div class="field">
-        <label for="f-pin">Code d'accès</label>
-        <input type="text" inputmode="numeric" id="f-pin" placeholder="••••">
+        <label for="f-pin">Mot de passe</label>
+        <input type="password" id="f-pin" placeholder="Mot de passe" autocomplete="off">
       </div>
-      <p class="hint" id="pin-error" style="color:var(--danger); display:none;">Code incorrect.</p>
+      <p class="hint" id="pin-error" style="color:var(--danger); display:none;">Mot de passe incorrect.</p>
       <button class="btn btn-primary" id="btn-pin-ok">Déverrouiller</button>
     </div>
   </div>
@@ -204,12 +204,12 @@
   // Même URL Apps Script que index.html — copie-la ici si tu la changes un jour.
   var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbws_KncvOF-MsVSl-SeqIocZ16dRbTlhp8eZmHDw04ax3kZ7DNCFQOX-S1D_5JvyjAq/exec";
 
-  var ADMIN_PIN = "2500";
-  var MAGASINIER_PIN = "8080";
+  // Mot de passe unique pour magasinier ET administration — redemandé à
+  // chaque ouverture de la page (rien n'est mémorisé dans le navigateur).
+  // Pour le changer, remplace cette valeur ici ET dans admin.html.
+  var APP_PASSWORD = "N1colas1809@";
 
   function $(id){ return document.getElementById(id); }
-  function ls_get(k, fallback){ try { var v = localStorage.getItem(k); return v === null ? fallback : v; } catch(e){ return fallback; } }
-  function ls_set(k, v){ try { localStorage.setItem(k, v); } catch(e){} }
   function escapeHtml(s){ return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
   function toast(msg){
     var t = $("toast"); t.textContent = msg; t.classList.add("show");
@@ -244,24 +244,19 @@
     return "";
   }
 
-  // ---------- PIN gate ----------
-  var userRole = ls_get("qrstock_role", "");
-  function unlock(role){
-    userRole = role;
-    ls_set("qrstock_role", role);
+  // ---------- mot de passe (redemandé à chaque ouverture de la page) ----------
+  function unlock(){
     $("pin-overlay").hidden = true;
     $("app-body").hidden = false;
     $("header-actions").hidden = false;
-    $("role-label").textContent = role === "admin" ? "Connecté en administrateur" : "Connecté en magasinier";
+    $("role-label").textContent = "";
     loadHistory();
   }
-  if (userRole === "admin" || userRole === "magasinier"){ unlock(userRole); }
   $("btn-pin-ok").addEventListener("click", checkPin);
   $("f-pin").addEventListener("keydown", function(e){ if (e.key === "Enter") checkPin(); });
   function checkPin(){
-    var val = $("f-pin").value.trim();
-    if (val === ADMIN_PIN) unlock("admin");
-    else if (val === MAGASINIER_PIN) unlock("magasinier");
+    var val = $("f-pin").value;
+    if (val === APP_PASSWORD) unlock();
     else $("pin-error").style.display = "block";
   }
 
