@@ -69,23 +69,6 @@
   .entry .meta .sub{font-size:12.5px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
   .entry .qty{font-weight:700; font-size:14px; color:var(--accent); flex-shrink:0;}
   .empty-state{text-align:center; padding:20px 10px; color:var(--muted); font-size:14px; display:flex; flex-direction:column; align-items:center; gap:10px;}
-  .overlay{position:fixed; inset:0; background:rgba(16,31,38,0.6); backdrop-filter:blur(2px); display:flex; align-items:flex-end; justify-content:center; z-index:50;}
-  .sheet{background:var(--bg); width:100%; max-width:560px; max-height:92vh; overflow-y:auto; border-radius:20px 20px 0 0; padding:20px 18px calc(28px + env(safe-area-inset-bottom,0px)); display:flex; flex-direction:column; gap:16px;}
-  .sheet-handle{width:40px; height:4px; background:var(--border); border-radius:4px; margin:0 auto;}
-  .chip-list{display:flex; flex-wrap:wrap; gap:8px;}
-  .chip{display:flex; align-items:center; gap:6px; background:var(--surface-2); border:1px solid var(--border); border-radius:999px; padding:7px 8px 7px 13px; font-size:13.5px;}
-  .chip button{border:none; background:none; color:var(--muted); cursor:pointer; width:20px; height:20px; display:flex; align-items:center; justify-content:center; border-radius:50%;}
-  .chip button:active{background:var(--danger-soft); color:var(--danger);}
-  .inline-add{display:flex; gap:8px;}
-  .inline-add input{flex:1;}
-  table.history{width:100%; border-collapse:collapse; font-size:13px;}
-  table.history th{text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:var(--muted); padding:0 8px 8px; font-weight:600;}
-  table.history td{padding:9px 8px; border-top:1px solid var(--border); vertical-align:top;}
-  table.history .del{width:32px; height:32px; border-radius:8px; border:none; background:transparent; color:var(--muted); cursor:pointer;}
-  table.history .del.confirm{background:var(--danger); color:#fff;}
-  .tabs{display:flex; gap:6px; background:var(--surface-2); padding:4px; border-radius:999px;}
-  .tab{flex:1; text-align:center; padding:9px 0; border-radius:999px; font-size:13.5px; font-weight:600; color:var(--muted); cursor:pointer;}
-  .tab.active{background:var(--surface); color:var(--ink); box-shadow:0 1px 3px rgba(0,0,0,0.08);}
   .toast{position:fixed; left:50%; transform:translateX(-50%); bottom:24px; background:var(--ink); color:var(--bg); padding:11px 18px; border-radius:999px; font-size:13.5px; font-weight:600; box-shadow:0 6px 20px rgba(0,0,0,0.25); z-index:80; opacity:0; pointer-events:none; transition:opacity .2s, transform .2s;}
   .toast.show{opacity:1; transform:translateX(-50%) translateY(-6px);}
   footer.foot{text-align:center; color:var(--muted); font-size:12px; margin-top:28px;}
@@ -126,13 +109,12 @@
     <h1>Scan Stock</h1>
   </div>
   <div class="row" style="gap:8px;">
-    <button class="btn btn-secondary" id="btn-open-magasinier" style="padding:9px 14px; font-size:13px;">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-3V5a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v2H4a1 1 0 0 0-1 1v3a1 1 0 0 0 1 1h1v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7h1a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1zM9 5h6v2H9z"/></svg>
-      Magasinier
-    </button>
-    <button class="icon-btn" id="btn-open-admin" aria-label="Accès administration" title="Accès administration">
+    <a class="icon-btn" id="btn-open-magasinier" href="historique.html" target="_blank" rel="noopener" aria-label="Historique des sorties (magasinier)" title="Historique des sorties (magasinier)">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-3V5a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v2H4a1 1 0 0 0-1 1v3a1 1 0 0 0 1 1h1v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7h1a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1zM9 5h6v2H9z"/></svg>
+    </a>
+    <a class="icon-btn" id="btn-open-admin" href="admin.html" target="_blank" rel="noopener" aria-label="Accès administration" title="Accès administration">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-    </button>
+    </a>
   </div>
 </header>
 
@@ -226,63 +208,6 @@
 
 <canvas id="scan-canvas" hidden></canvas>
 
-<div class="overlay" id="admin-overlay" hidden>
-  <div class="sheet">
-    <div class="sheet-handle"></div>
-
-    <div id="pin-screen">
-      <h2 style="font-size:19px; margin-bottom:4px;" id="pin-screen-title">Accès réservé</h2>
-      <p class="hint" style="margin-bottom:14px;" id="pin-screen-hint">Code requis.</p>
-      <div class="field">
-        <label for="f-pin" id="pin-field-label">Code d'accès</label>
-        <input type="text" inputmode="numeric" id="f-pin" placeholder="••••">
-      </div>
-      <p class="hint" id="pin-error" style="color:var(--danger); display:none; margin-top:-6px;">Code incorrect.</p>
-      <div class="row" style="margin-top:14px; gap:10px;">
-        <button class="btn btn-secondary" id="btn-pin-cancel" style="flex:1;">Annuler</button>
-        <button class="btn btn-primary" id="btn-pin-ok" style="flex:1;">Déverrouiller</button>
-      </div>
-    </div>
-
-    <div id="admin-panel" hidden>
-      <div class="row space-between" style="margin-bottom:4px;">
-        <h2 style="font-size:19px;" id="admin-panel-title">Administration</h2>
-        <button class="icon-btn" id="btn-admin-close" aria-label="Fermer" style="width:36px; height:36px;">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
-        </button>
-      </div>
-
-      <div class="tabs" id="admin-tabs">
-        <div class="tab active" data-tab="magasins" id="tabbtn-magasins">Magasins</div>
-        <div class="tab" data-tab="historique" id="tabbtn-historique">Historique</div>
-      </div>
-
-      <div id="tab-magasins">
-        <p class="hint" style="margin-bottom:10px;">Les magasins Lhotellier Eau. Modifiable si un magasin ouvre, ferme ou change de nom.</p>
-        <div class="chip-list" id="magasins-chips"></div>
-        <div class="inline-add" style="margin-top:12px;">
-          <input type="text" id="f-new-magasin" placeholder="Nom du magasin">
-          <button class="btn btn-secondary" id="btn-add-magasin">Ajouter</button>
-        </div>
-      </div>
-
-      <div id="tab-historique" hidden>
-        <div class="row space-between" style="margin-bottom:10px;">
-          <p class="hint" style="margin:0;" id="history-count">—</p>
-          <button class="btn btn-secondary" id="btn-export" style="padding:9px 14px; font-size:13px;">Exporter en CSV</button>
-        </div>
-        <div style="overflow-x:auto;">
-          <table class="history" id="history-table">
-            <thead><tr><th>Date</th><th>Nom</th><th>Magasin</th><th>Chantier</th><th>Réf.</th><th>Désignation</th><th>Qté</th><th></th></tr></thead>
-            <tbody id="history-body"></tbody>
-          </table>
-        </div>
-        <p class="empty-state" id="history-empty" hidden>Aucune sortie enregistrée pour l'instant.</p>
-      </div>
-    </div>
-  </div>
-</div>
-
 <div class="toast" id="toast"></div>
 
 <footer class="foot">Outil interne · capture des sorties de stock vers Mainta</footer>
@@ -302,7 +227,6 @@
   // ================================================================
   var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbws_KncvOF-MsVSl-SeqIocZ16dRbTlhp8eZmHDw04ax3kZ7DNCFQOX-S1D_5JvyjAq/exec";
   var POLL_MS = 6000; // fréquence de rafraîchissement du magasin / des derniers enregistrements
-  var HISTORY_POLL_MS = 4000; // fréquence de rafraîchissement de l'historique admin (uniquement pendant que l'onglet est ouvert)
 
   // Load the QR-decoding library with a fallback CDN, since a single blocked
   // host (some corporate/4G networks filter jsdelivr) must not silently break scanning.
@@ -318,8 +242,6 @@
   });
   jsQRReady.then(function(loaded){ if (!loaded) toast("Librairie de scan indisponible sur ce réseau"); });
 
-  var ADMIN_PIN = "2500";
-  var MAGASINIER_PIN = "8080";
   var DEFAULT_MAGASINS = ["Conty","CCTC","Blangy","Longueau","Beauvais"];
 
   // ---------- tiny helpers ----------
@@ -348,15 +270,18 @@
   var cartSeq = 0;
 
   // ================================================================
-  // RÉFÉRENTIEL ARTICLES — fichier référentiel.json (référence -> désignation),
-  // généré depuis ton tableau Excel. Chargé une fois au démarrage, purement
-  // côté affichage : rien n'est écrit dans la feuille Google Sheets, ça sert
-  // juste à afficher le nom de l'article à côté de sa référence scannée.
+  // RÉFÉRENTIEL ARTICLES — chargé depuis la feuille Google Sheets
+  // "Referentiel" via Apps Script (action getReferentiel), pour que les
+  // articles ajoutés depuis la page admin apparaissent partout sans
+  // avoir à republier le site. Purement côté affichage : ça sert juste
+  // à afficher le nom de l'article à côté de sa référence scannée.
   // ================================================================
-  fetch("referentiel.json").then(function(r){ return r.ok ? r.json() : {}; }).then(function(data){
-    state.referentiel = data || {};
-    renderCart(); // rafraîchit les libellés si des articles étaient déjà dans le panier
-  }).catch(function(){ /* pas grave si absent — l'appli marche sans désignation affichée */ });
+  function loadReferentiel(){
+    apiGet("getReferentiel").then(function(res){
+      state.referentiel = (res && res.referentiel) || {};
+      renderCart(); // rafraîchit les libellés si des articles étaient déjà dans le panier
+    }).catch(function(){ /* pas grave si indisponible — l'appli marche sans désignation affichée */ });
+  }
 
   function designationFor(ref){
     if (!ref) return "";
@@ -723,7 +648,6 @@
       var list = (Array.isArray(res.magasins) && res.magasins.length) ? res.magasins : DEFAULT_MAGASINS;
       state.magasins = list;
       renderMagasinOptions();
-      renderAdminChips("magasins-chips", state.magasins, "magasins");
       renderRecent(res.recent || []);
     }).catch(function(err){ console.error(err); });
   }
@@ -741,6 +665,7 @@
 
   if (dbReady){
     refreshMainData();
+    loadReferentiel();
     setInterval(refreshMainData, POLL_MS);
   }
 
@@ -767,196 +692,6 @@
       console.error(err);
       toast("Échec de l'enregistrement, réessaie");
     }).finally(function(){ updateSaveEnabled(); });
-  });
-
-  // ---------- admin / magasinier: two separate entry points, each with its own PIN ----------
-  var userRole = ls_get("qrstock_role", ""); // "" | "magasinier" | "admin"
-  var pinTarget = "magasinier"; // which button was pressed: "magasinier" or "admin"
-  var historyPollTimer = null;
-
-  $("btn-open-magasinier").addEventListener("click", function(){
-    $("admin-overlay").hidden = false;
-    if (userRole === "magasinier" || userRole === "admin"){ showAdminPanel(userRole); }
-    else { showPinScreen("magasinier"); }
-  });
-  $("btn-open-admin").addEventListener("click", function(){
-    $("admin-overlay").hidden = false;
-    if (userRole === "admin"){ showAdminPanel("admin"); }
-    else { showPinScreen("admin"); }
-  });
-  $("btn-admin-close").addEventListener("click", function(){ $("admin-overlay").hidden = true; stopHistoryFeed(); });
-  $("admin-overlay").addEventListener("click", function(e){ if (e.target === this){ this.hidden = true; stopHistoryFeed(); } });
-
-  function showPinScreen(target){
-    pinTarget = target;
-    $("pin-screen").hidden = false; $("admin-panel").hidden = true;
-    $("f-pin").value = ""; $("pin-error").style.display = "none";
-    if (target === "admin"){
-      $("pin-screen-title").textContent = "Accès administration";
-      $("pin-screen-hint").textContent = "Gestion des magasins et de l'historique.";
-      $("pin-field-label").textContent = "Code admin";
-    } else {
-      $("pin-screen-title").textContent = "Accès magasinier";
-      $("pin-screen-hint").textContent = "Consultation et export de l'historique des sorties.";
-      $("pin-field-label").textContent = "Code magasinier";
-    }
-    setTimeout(function(){ $("f-pin").focus(); }, 50);
-  }
-  function showAdminPanel(role){
-    $("pin-screen").hidden = true; $("admin-panel").hidden = false;
-    var isAdmin = role === "admin";
-    $("admin-panel-title").textContent = isAdmin ? "Administration" : "Espace magasinier";
-    $("tabbtn-magasins").hidden = !isAdmin;
-    $("admin-tabs").hidden = !isAdmin;
-    selectTab("historique");
-    if (isAdmin) selectTab("magasins");
-    startHistoryFeed();
-  }
-  function selectTab(name){
-    Array.prototype.forEach.call(document.querySelectorAll(".tab"), function(t){ t.classList.toggle("active", t.dataset.tab === name); });
-    ["magasins","historique"].forEach(function(n){ $("tab-" + n).hidden = (n !== name); });
-  }
-
-  $("btn-pin-cancel").addEventListener("click", function(){ $("admin-overlay").hidden = true; });
-  $("btn-pin-ok").addEventListener("click", checkPin);
-  $("f-pin").addEventListener("keydown", function(e){ if (e.key === "Enter") checkPin(); });
-  function checkPin(){
-    var val = $("f-pin").value.trim();
-    if (val === ADMIN_PIN){
-      userRole = "admin"; ls_set("qrstock_role", "admin");
-      showAdminPanel("admin");
-    } else if (pinTarget === "magasinier" && val === MAGASINIER_PIN){
-      userRole = "magasinier"; ls_set("qrstock_role", "magasinier");
-      showAdminPanel("magasinier");
-    } else {
-      $("pin-error").style.display = "block";
-    }
-  }
-
-  // admin tabs (only reachable for the admin role; the tab bar is hidden entirely for magasinier)
-  Array.prototype.forEach.call(document.querySelectorAll(".tab"), function(tab){
-    tab.addEventListener("click", function(){ selectTab(tab.dataset.tab); });
-  });
-
-  function renderAdminChips(containerId, list, kind){
-    var el = $(containerId);
-    if (!list.length){ el.innerHTML = '<p class="hint" style="margin:0;">Rien pour l\'instant — ajoute le premier ci-dessous.</p>'; return; }
-    el.innerHTML = list.map(function(name, i){
-      return '<span class="chip">' + escapeHtml(name) + '<button type="button" data-kind="' + kind + '" data-idx="' + i + '" aria-label="Retirer">&times;</button></span>';
-    }).join("");
-    Array.prototype.forEach.call(el.querySelectorAll("button"), function(btn){
-      btn.addEventListener("click", function(){ removeFromList(btn.dataset.kind, parseInt(btn.dataset.idx,10)); });
-    });
-  }
-
-  function removeFromList(kind, idx){
-    if (!dbReady) return;
-    var arr = state.magasins.slice();
-    arr.splice(idx, 1);
-    state.magasins = arr; renderMagasinOptions(); renderAdminChips("magasins-chips", arr, "magasins");
-    apiPost("setMagasins", { list: arr }).then(function(res){
-      if (!res || !res.ok) throw new Error((res && res.error) || "erreur");
-    }).catch(function(){ toast("Échec de la mise à jour"); refreshMainData(); });
-  }
-  function addToList(kind, value){
-    if (!dbReady || !value) return;
-    var arr = state.magasins.slice();
-    if (arr.indexOf(value) !== -1) { toast("Déjà dans la liste"); return; }
-    arr.push(value);
-    state.magasins = arr; renderMagasinOptions(); renderAdminChips("magasins-chips", arr, "magasins");
-    apiPost("setMagasins", { list: arr }).then(function(res){
-      if (!res || !res.ok) throw new Error((res && res.error) || "erreur");
-    }).catch(function(){ toast("Échec de l'ajout"); refreshMainData(); });
-  }
-  $("btn-add-magasin").addEventListener("click", function(){
-    var v = $("f-new-magasin").value.trim(); if (!v) return;
-    addToList("magasins", v); $("f-new-magasin").value = "";
-  });
-  $("f-new-magasin").addEventListener("keydown", function(e){ if (e.key === "Enter") $("btn-add-magasin").click(); });
-
-  // history / export
-  var historyDocs = [];
-  function startHistoryFeed(){
-    if (!dbReady || historyPollTimer) return;
-    refreshHistory();
-    historyPollTimer = setInterval(refreshHistory, HISTORY_POLL_MS);
-  }
-  function stopHistoryFeed(){
-    if (historyPollTimer){ clearInterval(historyPollTimer); historyPollTimer = null; }
-  }
-  function refreshHistory(){
-    apiGet("getHistory").then(function(res){
-      if (!res || !res.ok) throw new Error((res && res.error) || "erreur");
-      historyDocs = res.history || [];
-      renderHistory();
-    }).catch(function(err){ console.error(err); });
-  }
-  function renderHistory(){
-    var body = $("history-body");
-    $("history-count").textContent = historyDocs.length + " sortie" + (historyDocs.length > 1 ? "s" : "") + " enregistrée" + (historyDocs.length > 1 ? "s" : "");
-    $("history-empty").hidden = historyDocs.length !== 0;
-    body.innerHTML = historyDocs.map(function(v){
-      return "<tr>" +
-        "<td>" + fmtDate(v.ts) + "</td>" +
-        "<td>" + escapeHtml(v.nom) + "</td>" +
-        "<td>" + escapeHtml(v.magasin) + "</td>" +
-        "<td>" + escapeHtml(v.chantier) + "</td>" +
-        '<td class="mono">' + escapeHtml(v.ref) + "</td>" +
-        "<td>" + escapeHtml(designationFor(v.ref)) + "</td>" +
-        "<td>" + escapeHtml(v.qty) + "</td>" +
-        '<td><button class="del" data-id="' + v.id + '" aria-label="Supprimer">' +
-          '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg>' +
-        "</button></td></tr>";
-    }).join("");
-    Array.prototype.forEach.call(body.querySelectorAll(".del"), function(btn){
-      btn.addEventListener("click", function(){ handleDelete(btn); });
-    });
-  }
-  function handleDelete(btn){
-    if (!btn.classList.contains("confirm")){
-      btn.classList.add("confirm");
-      btn.innerHTML = "OK?";
-      clearTimeout(btn._t);
-      btn._t = setTimeout(function(){ btn.classList.remove("confirm"); renderHistory(); }, 3000);
-      return;
-    }
-    var id = btn.dataset.id;
-    historyDocs = historyDocs.filter(function(v){ return v.id !== id; });
-    renderHistory();
-    apiPost("deleteScan", { id: id }).then(function(res){
-      if (!res || !res.ok) throw new Error((res && res.error) || "erreur");
-      toast("Entrée supprimée");
-      refreshMainData();
-    }).catch(function(){ toast("Échec de la suppression"); refreshHistory(); });
-  }
-
-  // ================================================================
-  // 3) EXPORT CSV — un lien de téléchargement classique (Blob URL),
-  //    ça marche nativement sur un site normal, pas besoin de
-  //    claude.use("downloads").
-  // ================================================================
-  $("btn-export").addEventListener("click", function(){
-    var rows = [["Date","Nom","Magasin","Chantier","Reference","Designation","Quantite"]];
-    historyDocs.forEach(function(v){
-      rows.push([fmtDate(v.ts), v.nom, v.magasin, v.chantier, v.ref, designationFor(v.ref), v.qty]);
-    });
-    var csv = rows.map(function(r){
-      return r.map(function(cell){
-        var s = String(cell == null ? "" : cell);
-        return /[",;\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s;
-      }).join(";");
-    }).join("\r\n");
-    var blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" });
-    var stamp = new Date().toISOString().slice(0,10);
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement("a");
-    a.href = url;
-    a.download = "sorties-stock-" + stamp + ".csv";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(function(){ URL.revokeObjectURL(url); }, 2000);
-    toast("Export téléchargé");
   });
 
   renderCart();
