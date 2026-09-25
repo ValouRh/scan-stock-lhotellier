@@ -92,7 +92,9 @@
   .badge-dot{width:6px; height:6px; border-radius:50%; background:var(--success); display:inline-block;}
   .cart-item{display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--border);}
   .cart-item:last-child{border-bottom:none;}
-  .cart-item .ref{font-weight:700; font-size:15px; flex:1; min-width:0; overflow-wrap:anywhere;}
+  .cart-item .ref-block{flex:1; min-width:0;}
+  .cart-item .ref{font-weight:700; font-size:15px; overflow-wrap:anywhere;}
+  .cart-item .ref-desig{font-size:12.5px; color:var(--muted); overflow-wrap:anywhere; margin-top:1px;}
   .cart-item .stepper button{width:34px; height:34px; font-size:16px;}
   .cart-item .stepper input{width:40px; font-size:15px;}
   .cart-remove{width:32px; height:32px; border-radius:8px; border:none; background:transparent; color:var(--muted); cursor:pointer; flex-shrink:0;}
@@ -271,7 +273,7 @@
         </div>
         <div style="overflow-x:auto;">
           <table class="history" id="history-table">
-            <thead><tr><th>Date</th><th>Nom</th><th>Magasin</th><th>Chantier</th><th>Réf.</th><th>Qté</th><th></th></tr></thead>
+            <thead><tr><th>Date</th><th>Nom</th><th>Magasin</th><th>Chantier</th><th>Réf.</th><th>Désignation</th><th>Qté</th><th></th></tr></thead>
             <tbody id="history-body"></tbody>
           </table>
         </div>
@@ -340,9 +342,33 @@
   var state = {
     cart: [], // [{ref, qty}]
     magasins: DEFAULT_MAGASINS.slice(),
-    dbReady: false
+    dbReady: false,
+    referentiel: {} // { "00003": "DOUCHE COMBINE LAVEUR D YEUX", ... }
   };
   var cartSeq = 0;
+
+  // ================================================================
+  // RÉFÉRENTIEL ARTICLES — fichier référentiel.json (référence -> désignation),
+  // généré depuis ton tableau Excel. Chargé une fois au démarrage, purement
+  // côté affichage : rien n'est écrit dans la feuille Google Sheets, ça sert
+  // juste à afficher le nom de l'article à côté de sa référence scannée.
+  // ================================================================
+  fetch("referentiel.json").then(function(r){ return r.ok ? r.json() : {}; }).then(function(data){
+    state.referentiel = data || {};
+    renderCart(); // rafraîchit les libellés si des articles étaient déjà dans le panier
+  }).catch(function(){ /* pas grave si absent — l'appli marche sans désignation affichée */ });
+
+  function designationFor(ref){
+    if (!ref) return "";
+    var r = String(ref).trim();
+    if (state.referentiel[r] != null) return state.referentiel[r];
+    // tolère une référence numérique saisie/scannée sans les zéros de tête
+    if (/^\d+$/.test(r)){
+      var padded = ("00000" + r).slice(-5);
+      if (state.referentiel[padded] != null) return state.referentiel[padded];
+    }
+    return "";
+  }
 
   // ---------- form wiring ----------
   $("f-nom").value = ls_get("qrstock_nom", "");
@@ -607,7 +633,11 @@
       ul.innerHTML = '<li class="empty-state">Aucun article scanné pour l\'instant.</li>';
     } else {
       ul.innerHTML = state.cart.map(function(it){
-        return '<li class="cart-item"><span class="ref mono">' + escapeHtml(it.ref) + '</span>' +
+        var desig = designationFor(it.ref);
+        return '<li class="cart-item"><div class="ref-block">' +
+          '<div class="ref mono">' + escapeHtml(it.ref) + '</div>' +
+          (desig ? '<div class="ref-desig">' + escapeHtml(desig) + '</div>' : '') +
+          '</div>' +
           '<div class="stepper"><button type="button" class="cart-minus" data-id="' + it.id + '">&minus;</button>' +
           '<input type="number" class="cart-qty" data-id="' + it.id + '" value="' + it.qty + '" min="1" inputmode="numeric">' +
           '<button type="button" class="cart-plus" data-id="' + it.id + '">+</button></div>' +
@@ -697,7 +727,8 @@
     var ul = $("recent-list");
     if (!items.length){ ul.innerHTML = '<li class="empty-state">Aucun enregistrement pour l\'instant.</li>'; return; }
     ul.innerHTML = items.map(function(v){
-      return '<li class="entry"><span class="dot"></span><div class="meta"><div class="ref mono">' + escapeHtml(v.ref) + '</div>' +
+      var desig = designationFor(v.ref);
+      return '<li class="entry"><span class="dot"></span><div class="meta"><div class="ref mono">' + escapeHtml(v.ref) + (desig ? ' &mdash; ' + escapeHtml(desig) : '') + '</div>' +
         '<div class="sub">' + escapeHtml(v.nom) + ' &middot; ' + escapeHtml(v.magasin) + ' &middot; ' + escapeHtml(v.chantier) + '</div></div>' +
         '<div class="qty">&times;' + escapeHtml(v.qty) + '</div></li>';
     }).join("");
@@ -866,6 +897,7 @@
         "<td>" + escapeHtml(v.magasin) + "</td>" +
         "<td>" + escapeHtml(v.chantier) + "</td>" +
         '<td class="mono">' + escapeHtml(v.ref) + "</td>" +
+        "<td>" + escapeHtml(designationFor(v.ref)) + "</td>" +
         "<td>" + escapeHtml(v.qty) + "</td>" +
         '<td><button class="del" data-id="' + v.id + '" aria-label="Supprimer">' +
           '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg>' +
@@ -899,9 +931,9 @@
   //    claude.use("downloads").
   // ================================================================
   $("btn-export").addEventListener("click", function(){
-    var rows = [["Date","Nom","Magasin","Chantier","Reference","Quantite"]];
+    var rows = [["Date","Nom","Magasin","Chantier","Reference","Designation","Quantite"]];
     historyDocs.forEach(function(v){
-      rows.push([fmtDate(v.ts), v.nom, v.magasin, v.chantier, v.ref, v.qty]);
+      rows.push([fmtDate(v.ts), v.nom, v.magasin, v.chantier, v.ref, designationFor(v.ref), v.qty]);
     });
     var csv = rows.map(function(r){
       return r.map(function(cell){
