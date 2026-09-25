@@ -144,6 +144,10 @@
       <label for="f-chantier">Chantier</label>
       <input type="text" id="f-chantier" placeholder="Ex. Rue de la Gare - Conty" autocomplete="off">
     </div>
+    <div class="field">
+      <label for="f-bt">N° de BT Mainta (facultatif)</label>
+      <input type="text" id="f-bt" placeholder="Ex. BT-2026-0148" autocomplete="off" class="mono">
+    </div>
   </div>
 
   <div class="card">
@@ -659,14 +663,16 @@
     var nom = $("f-nom").value.trim();
     var magasin = $("f-magasin").value;
     var chantier = $("f-chantier").value.trim();
+    var bt = $("f-bt").value.trim();
     var ts = new Date().toISOString();
     var items = state.cart.slice();
-    apiPost("addScans", { nom: nom, magasin: magasin, chantier: chantier, items: items, ts: ts }).then(function(res){
+    apiPost("addScans", { nom: nom, magasin: magasin, chantier: chantier, bt: bt, items: items, ts: ts }).then(function(res){
       if (!res || !res.ok) throw new Error((res && res.error) || "erreur");
       toast(items.length > 1 ? "Sortie enregistrée (" + items.length + " articles)" : "Sortie enregistrée");
       state.cart = [];
       renderCart();
       $("f-chantier").value = "";
+      $("f-bt").value = "";
       $("f-ref-manual").value = "";
       $("manual-field").hidden = true;
       refreshMainData();
