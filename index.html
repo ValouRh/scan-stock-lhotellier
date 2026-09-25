@@ -51,7 +51,7 @@
   .pill{display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:700; letter-spacing:0.4px; text-transform:uppercase; padding:5px 11px; border-radius:999px;}
   .pill-success{background:var(--success-soft); color:var(--success);}
   .pill-muted{background:var(--surface-2); color:var(--muted);}
-  .scan-zone{border:2px dashed var(--border); border-radius:var(--radius); padding:24px 16px; text-align:center; display:flex; flex-direction:column; align-items:center; gap:10px; position:relative; overflow:hidden;}
+  .scan-zone{border:2px dashed var(--border); border-radius:var(--radius); padding:24px 16px; text-align:center; display:flex; flex-direction:column; align-items:center; gap:10px;}
   .scan-zone.filled{border-style:solid; border-color:var(--success); background:var(--success-soft);}
   .ref-value{font-size:26px; font-weight:700; letter-spacing:0.5px;}
   .stepper{display:flex; align-items:center; gap:0; border:1px solid var(--border); border-radius:var(--radius-sm); overflow:hidden; width:fit-content;}
@@ -97,18 +97,6 @@
   .cart-remove{width:32px; height:32px; border-radius:8px; border:none; background:transparent; color:var(--muted); cursor:pointer; flex-shrink:0;}
   .cart-remove:active{background:var(--danger-soft); color:var(--danger);}
   .cart-count{background:var(--accent); color:var(--accent-ink); font-size:12px; font-weight:700; min-width:20px; height:20px; border-radius:10px; display:inline-flex; align-items:center; justify-content:center; padding:0 6px;}
-  /* live camera scanner */
-  #scanner-overlay{position:fixed; inset:0; background:#000; z-index:100; display:flex; flex-direction:column;}
-  #scanner-video{position:absolute; inset:0; width:100%; height:100%; object-fit:cover;}
-  #scanner-topbar{position:relative; z-index:2; display:flex; align-items:center; justify-content:space-between; padding:16px; padding-top:calc(16px + env(safe-area-inset-top,0px));}
-  #scanner-topbar .icon-btn{background:rgba(255,255,255,0.15); border-color:rgba(255,255,255,0.25); color:#fff; backdrop-filter:blur(4px);}
-  #scanner-frame{position:relative; z-index:1; flex:1; display:flex; align-items:center; justify-content:center;}
-  #scanner-box{width:min(72vw,320px); height:min(72vw,320px); border:3px solid rgba(255,255,255,0.85); border-radius:20px; box-shadow:0 0 0 2000px rgba(0,0,0,0.35);}
-  #scanner-bottombar{position:relative; z-index:2; padding:18px 16px calc(24px + env(safe-area-inset-bottom,0px)); display:flex; flex-direction:column; align-items:center; gap:10px;}
-  #scanner-status{color:#fff; font-size:14px; text-align:center; min-height:20px;}
-  #scanner-cart-pill{background:rgba(255,255,255,0.15); color:#fff; border-radius:999px; padding:8px 16px; font-size:13.5px; font-weight:600; backdrop-filter:blur(4px);}
-  .flash{position:absolute; inset:0; background:#fff; opacity:0; pointer-events:none; z-index:3;}
-  .flash.on{opacity:0.55; transition:opacity .08s ease-out;}
   #config-banner{background:var(--warning-soft); border:1px solid var(--warning); color:var(--warning); border-radius:var(--radius-sm); padding:12px 14px; font-size:13px; line-height:1.5; margin-bottom:16px;}
 </style>
 </head>
@@ -157,13 +145,14 @@
     </div>
     <div class="scan-zone" id="scan-zone">
       <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.6"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h3M20 17.5v3.5h-3"/></svg>
-      <p class="hint" id="scan-zone-text">Ouvre le scanner pour ajouter des articles au panier</p>
+      <p class="hint" id="scan-zone-text">Photographie le QR code d'un article pour l'ajouter au panier</p>
       <div class="row" style="gap:10px; flex-wrap:wrap; justify-content:center;">
-        <button class="btn btn-primary" id="btn-scan" disabled>Ouvrir le scanner</button>
+        <button class="btn btn-primary" id="btn-scan" disabled>Photographier un article</button>
       </div>
       <button class="btn btn-ghost" id="btn-manual" style="font-size:13px;" disabled>Ajouter une référence à la main</button>
       <p class="hint" id="scan-disabled-hint">Renseigne ton nom, le magasin et le chantier ci-dessus pour commencer à scanner.</p>
     </div>
+    <input type="file" id="file-input" accept="image/*" capture="environment" hidden>
     <div class="field" id="manual-field" hidden>
       <label for="f-ref-manual">Référence (saisie manuelle)</label>
       <div class="row">
@@ -196,27 +185,6 @@
   </div>
 
 </main>
-
-<!-- live camera scanner -->
-<div id="scanner-overlay" hidden>
-  <video id="scanner-video" autoplay playsinline muted></video>
-  <div class="flash" id="scanner-flash"></div>
-  <div id="scanner-topbar">
-    <span class="pill" style="background:rgba(255,255,255,0.15); color:#fff;" id="scanner-cart-pill-top">Panier: <span id="scanner-cart-count">0</span></span>
-    <button class="icon-btn" id="btn-scanner-close" aria-label="Fermer le scanner">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
-    </button>
-  </div>
-  <div id="scanner-frame">
-    <div id="scanner-box"></div>
-  </div>
-  <div id="scanner-bottombar">
-    <p id="scanner-status">Vise le QR code d'un article</p>
-    <button class="btn btn-secondary btn-block" id="btn-scanner-manual">Ajouter une référence à la main</button>
-  </div>
-</div>
-
-<canvas id="scan-canvas" hidden></canvas>
 
 <div class="overlay" id="admin-overlay" hidden>
   <div class="sheet">
@@ -281,23 +249,33 @@
 
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
 
-<!-- jsQR: QR decoding from raw video frames -->
-<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js" onerror="this.onerror=null;var s=document.createElement('script');s.src='https://unpkg.com/jsqr@1.4.0/dist/jsQR.js';document.head.appendChild(s);"></script>
-
 <script>
 (function(){
   "use strict";
 
   // ================================================================
-  // 1) GOOGLE APPS SCRIPT CONFIG — remplace la valeur ci-dessous par
-  //    l'URL de ton application web Apps Script (se termine par
-  //    ".../exec"). Voir README.md pour la marche à suivre : coller
-  //    Code.gs dans une feuille Google Sheets, déployer comme
-  //    application web, copier l'URL ici. 100% gratuit.
+  // 1) GOOGLE APPS SCRIPT CONFIG — URL de ton application web Apps
+  //    Script (se termine par ".../exec"). Voir README.md pour la
+  //    marche à suivre : coller Code.gs dans une feuille Google
+  //    Sheets, déployer comme application web, copier l'URL ici.
+  //    100% gratuit.
   // ================================================================
   var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbws_KncvOF-MsVSl-SeqIocZ16dRbTlhp8eZmHDw04ax3kZ7DNCFQOX-S1D_5JvyjAq/exec";
   var POLL_MS = 6000; // fréquence de rafraîchissement du magasin / des derniers enregistrements
   var HISTORY_POLL_MS = 4000; // fréquence de rafraîchissement de l'historique admin (uniquement pendant que l'onglet est ouvert)
+
+  // Load the QR-decoding library with a fallback CDN, since a single blocked
+  // host (some corporate/4G networks filter jsdelivr) must not silently break scanning.
+  var jsQRReady = new Promise(function(resolve){
+    function tryLoad(url, fallbackUrl){
+      var s = document.createElement("script");
+      s.src = url;
+      s.onload = function(){ resolve(typeof jsQR === "function"); };
+      s.onerror = function(){ if (fallbackUrl) tryLoad(fallbackUrl, null); else resolve(false); };
+      document.head.appendChild(s);
+    }
+    tryLoad("https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js", "https://unpkg.com/jsqr@1.4.0/dist/jsQR.js");
+  });
 
   var ADMIN_PIN = "2500";
   var MAGASINIER_PIN = "8080";
@@ -321,7 +299,7 @@
 
   // ---------- state ----------
   var state = {
-    cart: [], // [{id, ref, qty}]
+    cart: [], // [{ref, qty}]
     magasins: DEFAULT_MAGASINS.slice(),
     dbReady: false
   };
@@ -353,7 +331,9 @@
     return !!($("f-nom").value.trim() && $("f-magasin").value && $("f-chantier").value.trim());
   }
 
-  // ---------- manual entry ----------
+  // scan / manual entry — each successful read adds one line to the cart
+  var fileInput = $("file-input");
+  $("btn-scan").addEventListener("click", function(){ if (contextReady()) fileInput.click(); });
   $("btn-manual").addEventListener("click", function(){
     if (!contextReady()) return;
     var mf = $("manual-field");
@@ -366,121 +346,62 @@
     addToCart(v);
     $("f-ref-manual").value = "";
     $("manual-field").hidden = true;
-    toast("Article ajouté au panier");
   });
   $("f-ref-manual").addEventListener("keydown", function(e){ if (e.key === "Enter") $("btn-manual-add").click(); });
 
-  // ================================================================
-  // 2) LIVE CAMERA SCANNER — getUserMedia + boucle requestAnimationFrame
-  //    Fonctionne uniquement sur un site hébergé en HTTPS (GitHub Pages
-  //    l'est par défaut) — jamais dans un aperçu intégré comme un artefact.
-  // ================================================================
-  var scannerStream = null;
-  var scannerRAF = null;
-  var scannerCanvas = $("scan-canvas");
-  var scannerCtx = scannerCanvas.getContext("2d", { willReadFrequently: true });
-  var lastScanTs = 0;
-  var lastScanValue = "";
-
-  $("btn-scan").addEventListener("click", function(){
-    if (!contextReady()) return;
-    openScanner();
-  });
-  $("btn-scanner-close").addEventListener("click", closeScanner);
-  $("btn-scanner-manual").addEventListener("click", function(){
-    closeScanner();
-    $("manual-field").hidden = false;
-    $("f-ref-manual").focus();
-  });
-
-  function openScanner(){
-    if (!contextReady()) return;
-    if (typeof jsQR !== "function"){
-      toast("Librairie de scan indisponible — vérifie ta connexion et recharge la page");
-      return;
-    }
-    $("scanner-overlay").hidden = false;
-    $("scanner-status").textContent = "Vise le QR code d'un article";
-    updateScannerCartPill();
-    var constraints = { video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false };
-    navigator.mediaDevices.getUserMedia(constraints).then(function(stream){
-      scannerStream = stream;
-      var video = $("scanner-video");
-      video.srcObject = stream;
-      video.onloadedmetadata = function(){
-        video.play();
-        scannerRAF = requestAnimationFrame(scanFrame);
-      };
-    }).catch(function(err){
-      $("scanner-status").textContent = "Caméra indisponible — autorise l'accès à la caméra dans les réglages du navigateur, ou ajoute la référence à la main.";
-      toast("Accès caméra refusé ou indisponible");
-    });
+  function decodeAt(img, maxDim){
+    var scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+    var w = Math.max(1, Math.round(img.width * scale)), h = Math.max(1, Math.round(img.height * scale));
+    var canvas = document.createElement("canvas");
+    canvas.width = w; canvas.height = h;
+    var ctx = canvas.getContext("2d");
+    ctx.drawImage(img, 0, 0, w, h);
+    var imageData = ctx.getImageData(0, 0, w, h);
+    return jsQR(imageData.data, w, h, { inversionAttempts: "attemptBoth" });
   }
 
-  function closeScanner(){
-    $("scanner-overlay").hidden = true;
-    if (scannerRAF){ cancelAnimationFrame(scannerRAF); scannerRAF = null; }
-    if (scannerStream){
-      scannerStream.getTracks().forEach(function(t){ t.stop(); });
-      scannerStream = null;
-    }
-    $("scanner-video").srcObject = null;
-  }
-
-  function scanFrame(){
-    var video = $("scanner-video");
-    if (video.readyState === video.HAVE_ENOUGH_DATA){
-      var w = video.videoWidth, h = video.videoHeight;
-      if (w && h){
-        // downscale for speed — full video resolution isn't needed to read a QR code
-        var scale = Math.min(1, 900 / Math.max(w, h));
-        var cw = Math.max(1, Math.round(w * scale)), ch = Math.max(1, Math.round(h * scale));
-        scannerCanvas.width = cw; scannerCanvas.height = ch;
-        scannerCtx.drawImage(video, 0, 0, cw, ch);
+  fileInput.addEventListener("change", function(){
+    var file = fileInput.files && fileInput.files[0];
+    fileInput.value = "";
+    if (!file) return;
+    $("scan-zone-text").textContent = "Lecture du QR code…";
+    var img = new Image();
+    var url = URL.createObjectURL(file);
+    img.onload = function(){
+      URL.revokeObjectURL(url);
+      jsQRReady.then(function(loaded){
+        if (!loaded){
+          $("scan-zone-text").textContent = "La lecture automatique est indisponible sur ce réseau — ajoute la référence à la main pour cette fois.";
+          toast("Lecture QR indisponible");
+          return;
+        }
         try {
-          var imageData = scannerCtx.getImageData(0, 0, cw, ch);
-          var code = jsQR(imageData.data, cw, ch, { inversionAttempts: "attemptBoth" });
+          // First pass at a moderate resolution (fast); if the code is small in
+          // frame, retry once at the photo's native resolution before giving up.
+          var code = decodeAt(img, 1800);
+          if (!code) code = decodeAt(img, Math.max(img.width, img.height));
           if (code && code.data){
-            handleScanHit(code.data);
+            addToCart(code.data);
+            toast("Article ajouté au panier");
+            $("scan-zone-text").textContent = "Photographie le QR code d'un article pour l'ajouter au panier";
+          } else {
+            $("scan-zone-text").textContent = "QR code non reconnu — reprends la photo en te rapprochant, ou ajoute la référence à la main.";
+            toast("QR code non reconnu");
           }
-        } catch(e){ /* transient decode errors are fine, keep looping */ }
-      }
-    }
-    scannerRAF = requestAnimationFrame(scanFrame);
-  }
+        } catch(e){
+          $("scan-zone-text").textContent = "Lecture impossible — reprends la photo ou ajoute la référence à la main.";
+        }
+      });
+    };
+    img.onerror = function(){ $("scan-zone-text").textContent = "Photo illisible, réessaie."; };
+    img.src = url;
+  });
 
-  function handleScanHit(value){
-    var now = Date.now();
-    // debounce: ignore the same code re-triggering every frame while it's still in view
-    if (value === lastScanValue && (now - lastScanTs) < 1800) return;
-    lastScanValue = value; lastScanTs = now;
-    addToCart(value);
-    flashScanner();
-    if (navigator.vibrate) { try { navigator.vibrate(60); } catch(e){} }
-    $("scanner-status").textContent = "Ajouté : " + value;
-    updateScannerCartPill();
-    setTimeout(function(){
-      if (!$("scanner-overlay").hidden) $("scanner-status").textContent = "Vise le QR code d'un article";
-    }, 1400);
-  }
-
-  function flashScanner(){
-    var f = $("scanner-flash");
-    f.classList.add("on");
-    setTimeout(function(){ f.classList.remove("on"); }, 90);
-  }
-
-  function updateScannerCartPill(){
-    $("scanner-cart-count").textContent = state.cart.reduce(function(s,it){ return s + it.qty; }, 0);
-  }
-
-  // ---------- cart ----------
   function addToCart(ref){
     var existing = state.cart.find(function(it){ return it.ref === ref; });
     if (existing){ existing.qty += 1; }
     else { state.cart.push({ id: "c" + (++cartSeq), ref: ref, qty: 1 }); }
     renderCart();
-    updateScannerCartPill();
   }
 
   function renderCart(){
@@ -509,19 +430,16 @@
     if (!it) return;
     it.qty = Math.max(1, it.qty + delta);
     renderCart();
-    updateScannerCartPill();
   }
   function setCartQty(id, val){
     var it = state.cart.find(function(i){ return i.id === id; });
     if (!it) return;
     it.qty = (val && val > 0) ? val : 1;
     updateSaveEnabled();
-    updateScannerCartPill();
   }
   function removeFromCart(id){
     state.cart = state.cart.filter(function(i){ return i.id !== id; });
     renderCart();
-    updateScannerCartPill();
   }
 
   function updateSaveEnabled(){
@@ -533,13 +451,10 @@
   }
 
   // ================================================================
-  // 3) GOOGLE APPS SCRIPT + GOOGLE SHEETS — remplace claude.use("db").
-  //    Pas de mise à jour en direct (push) comme Firebase : on
-  //    interroge régulièrement (polling) l'application web Apps
-  //    Script, qui lit/écrit directement dans la feuille Google
-  //    Sheets. Même structure de données logique :
-  //    - une ligne par article sorti (nom, magasin, chantier, ref, qty, ts)
-  //    - une liste de magasins gérée par l'admin
+  // 2) GOOGLE APPS SCRIPT + GOOGLE SHEETS — remplace claude.use("db").
+  //    Pas de mise à jour en direct (push) : on interroge
+  //    régulièrement (polling) l'application web Apps Script, qui
+  //    lit/écrit directement dans la feuille Google Sheets.
   // ================================================================
   var configOk = APPS_SCRIPT_URL && APPS_SCRIPT_URL.indexOf("REPLACE_ME") === -1;
   var dbReady = false;
@@ -683,6 +598,7 @@
     }
   }
 
+  // admin tabs (only reachable for the admin role; the tab bar is hidden entirely for magasinier)
   Array.prototype.forEach.call(document.querySelectorAll(".tab"), function(tab){
     tab.addEventListener("click", function(){ selectTab(tab.dataset.tab); });
   });
@@ -779,7 +695,7 @@
   }
 
   // ================================================================
-  // 4) EXPORT CSV — un lien de téléchargement classique (Blob URL),
+  // 3) EXPORT CSV — un lien de téléchargement classique (Blob URL),
   //    ça marche nativement sur un site normal, pas besoin de
   //    claude.use("downloads").
   // ================================================================
