@@ -207,12 +207,45 @@
     function tryLoad(url, fallbackUrl){
       var s = document.createElement("script");
       s.src = url;
-      s.onload = function(){ resolve(typeof QRCode !== "undefined"); };
+      s.onload = function(){ resolve(typeof QRCode === "function"); };
       s.onerror = function(){ if (fallbackUrl) tryLoad(fallbackUrl, null); else resolve(false); };
       document.head.appendChild(s);
     }
-    tryLoad("https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js", "https://unpkg.com/qrcode@1.5.3/build/qrcode.min.js");
+    tryLoad("https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js", "https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js");
   });
+
+  // qrcodejs draws into a DOM element it creates itself (a <canvas>, or an
+  // <img> as a fallback on old mobile browsers) rather than returning one
+  // directly — this normalizes either case into a plain <canvas> we can
+  // then composite onto our own label canvas.
+  function generateQrCanvas(text, callback){
+    var holder = document.createElement("div");
+    holder.style.position = "fixed";
+    holder.style.left = "-9999px";
+    holder.style.top = "0";
+    document.body.appendChild(holder);
+    new QRCode(holder, { text: text, width: 260, height: 260, correctLevel: QRCode.CorrectLevel.M });
+    setTimeout(function(){
+      var canvasEl = holder.querySelector("canvas");
+      var imgEl = holder.querySelector("img");
+      function done(c){ document.body.removeChild(holder); callback(c); }
+      if (canvasEl && canvasEl.width){
+        done(canvasEl);
+      } else if (imgEl && imgEl.src){
+        var image = new Image();
+        image.onload = function(){
+          var c = document.createElement("canvas");
+          c.width = image.naturalWidth || 260; c.height = image.naturalHeight || 260;
+          c.getContext("2d").drawImage(image, 0, 0);
+          done(c);
+        };
+        image.onerror = function(){ done(null); };
+        image.src = imgEl.src;
+      } else {
+        done(null);
+      }
+    }, 60);
+  }
 
   // ---------- PIN gate ----------
   var unlocked = ls_get("qrstock_role", "") === "admin";
@@ -311,9 +344,8 @@
 
   function drawLabel(ref, desig){
     // 1) generate the QR code itself onto an offscreen canvas
-    var qrCanvas = document.createElement("canvas");
-    QRCode.toCanvas(qrCanvas, ref, { width: 260, margin: 1, errorCorrectionLevel: "M" }, function(err){
-      if (err){ console.error(err); toast("Erreur lors de la génération du QR code"); return; }
+    generateQrCanvas(ref, function(qrCanvas){
+      if (!qrCanvas){ toast("Erreur lors de la génération du QR code"); return; }
       // 2) compose the final label: QR code + "reference — designation" text below,
       //    echoing the reference/designation layout of the original Excel labels.
       var pad = 24;
