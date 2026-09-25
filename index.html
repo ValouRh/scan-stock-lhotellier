@@ -390,8 +390,6 @@
   var scannerRAF = null;
   var scannerCanvas = $("scan-canvas");
   var scannerCtx = scannerCanvas.getContext("2d", { willReadFrequently: true });
-  var lastScanTs = 0;
-  var lastScanValue = "";
 
   $("btn-scan").addEventListener("click", function(){
     if (!contextReady()) return;
@@ -451,21 +449,47 @@
     $("scanner-video").srcObject = null;
   }
 
+  // Ne décode que la zone visible dans le carré de visée (pas toute l'image
+  // caméra) — la vidéo remplit l'écran en "object-fit:cover", donc on doit
+  // convertir la position écran du carré en coordonnées pixels de la vidéo.
+  function getScanRegion(video){
+    var vw = video.videoWidth, vh = video.videoHeight;
+    if (!vw || !vh) return null;
+    var containerRect = video.getBoundingClientRect();
+    var cw = containerRect.width, ch = containerRect.height;
+    if (!cw || !ch) return null;
+    var scale = Math.max(cw / vw, ch / vh);
+    var dispW = vw * scale, dispH = vh * scale;
+    var offsetX = (dispW - cw) / 2;
+    var offsetY = (dispH - ch) / 2;
+    var boxRect = $("scanner-box").getBoundingClientRect();
+    var sx = (boxRect.left - containerRect.left + offsetX) / scale;
+    var sy = (boxRect.top - containerRect.top + offsetY) / scale;
+    var sw = boxRect.width / scale;
+    var sh = boxRect.height / scale;
+    sx = Math.max(0, Math.min(sx, vw - 1));
+    sy = Math.max(0, Math.min(sy, vh - 1));
+    sw = Math.max(1, Math.min(sw, vw - sx));
+    sh = Math.max(1, Math.min(sh, vh - sy));
+    return { sx: sx, sy: sy, sw: sw, sh: sh };
+  }
+
   function scanFrame(){
     var video = $("scanner-video");
     if (video.readyState === video.HAVE_ENOUGH_DATA){
-      var w = video.videoWidth, h = video.videoHeight;
-      if (w && h){
-        // downscale for speed — full video resolution isn't needed to read a QR code
-        var scale = Math.min(1, 900 / Math.max(w, h));
-        var cw = Math.max(1, Math.round(w * scale)), ch = Math.max(1, Math.round(h * scale));
+      var region = getScanRegion(video);
+      if (region){
+        // downscale for speed — full resolution isn't needed to read a QR code
+        var scale = Math.min(1, 700 / Math.max(region.sw, region.sh));
+        var cw = Math.max(1, Math.round(region.sw * scale)), ch = Math.max(1, Math.round(region.sh * scale));
         scannerCanvas.width = cw; scannerCanvas.height = ch;
-        scannerCtx.drawImage(video, 0, 0, cw, ch);
+        scannerCtx.drawImage(video, region.sx, region.sy, region.sw, region.sh, 0, 0, cw, ch);
         try {
           var imageData = scannerCtx.getImageData(0, 0, cw, ch);
           var code = jsQR(imageData.data, cw, ch, { inversionAttempts: "attemptBoth" });
           if (code && code.data){
             handleScanHit(code.data);
+            return; // un seul article par ouverture du scanner — on ne reprogramme pas de frame
           }
         } catch(e){ /* transient decode errors are fine, keep looping */ }
       }
@@ -474,18 +498,13 @@
   }
 
   function handleScanHit(value){
-    var now = Date.now();
-    // debounce: ignore the same code re-triggering every frame while it's still in view
-    if (value === lastScanValue && (now - lastScanTs) < 1800) return;
-    lastScanValue = value; lastScanTs = now;
     addToCart(value);
     flashScanner();
     if (navigator.vibrate) { try { navigator.vibrate(60); } catch(e){} }
-    $("scanner-status").textContent = "Ajouté : " + value;
-    updateScannerCartPill();
-    setTimeout(function(){
-      if (!$("scanner-overlay").hidden) $("scanner-status").textContent = "Vise le QR code d'un article";
-    }, 1400);
+    toast("Article ajouté au panier : " + value);
+    // referme le scanner après chaque article, pour éviter qu'un second QR
+    // code visible dans le champ de la caméra ne s'ajoute par inadvertance
+    setTimeout(closeScanner, 120);
   }
 
   function flashScanner(){
