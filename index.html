@@ -180,16 +180,6 @@
 
   <button class="btn btn-primary btn-block" id="btn-save" disabled style="padding:16px; font-size:16px;">Valider la sortie</button>
 
-  <div class="card" style="margin-top:22px;">
-    <div class="row space-between">
-      <h3 style="font-size:15px;">Derniers enregistrements</h3>
-      <span class="badge-dot"></span>
-    </div>
-    <ul class="list-clean" id="recent-list">
-      <li class="empty-state">Aucun enregistrement pour l'instant.</li>
-    </ul>
-  </div>
-
 </main>
 
 <!-- live camera scanner -->
@@ -653,19 +643,7 @@
       var list = (Array.isArray(res.magasins) && res.magasins.length) ? res.magasins : DEFAULT_MAGASINS;
       state.magasins = list;
       renderMagasinOptions();
-      renderRecent(res.recent || []);
     }).catch(function(err){ console.error(err); });
-  }
-
-  function renderRecent(items){
-    var ul = $("recent-list");
-    if (!items.length){ ul.innerHTML = '<li class="empty-state">Aucun enregistrement pour l\'instant.</li>'; return; }
-    ul.innerHTML = items.map(function(v){
-      var desig = designationFor(v.ref);
-      return '<li class="entry"><span class="dot"></span><div class="meta"><div class="ref mono">' + escapeHtml(v.ref) + (desig ? ' &mdash; ' + escapeHtml(desig) : '') + '</div>' +
-        '<div class="sub">' + escapeHtml(v.nom) + ' &middot; ' + escapeHtml(v.magasin) + ' &middot; ' + escapeHtml(v.chantier) + '</div></div>' +
-        '<div class="qty">&times;' + escapeHtml(v.qty) + '</div></li>';
-    }).join("");
   }
 
   if (dbReady){
