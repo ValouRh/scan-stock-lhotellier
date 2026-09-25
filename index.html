@@ -3,21 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Scan Stock Lhotellier</title>
+<title>QuickStock — Lhotellier Eau</title>
 <style>
   :root{
-    --bg:#F7F5EF; --surface:#FFFFFF; --surface-2:#EDEAE0; --ink:#16323D; --muted:#5B6B72;
-    --border:#DDD7C7; --accent:#2E86AB; --accent-ink:#FFFFFF; --accent-soft:#E4F0F5;
-    --success:#3E8E5A; --success-soft:#E4F0E8; --warning:#B9822E; --warning-soft:#F5EEDD;
-    --danger:#B0453D; --danger-soft:#F6E4E1; --radius:16px; --radius-sm:10px;
+    --bg:#F5F8FA; --surface:#FFFFFF; --surface-2:#E9F1F5; --ink:#0D2B3E; --muted:#5C7688;
+    --border:#D3E1E8; --accent:#0B6FA6; --accent-2:#12A594; --accent-ink:#FFFFFF; --accent-soft:#E1F0F6;
+    --success:#2E9463; --success-soft:#E1F3E8; --warning:#C08A2E; --warning-soft:#F6EEDC;
+    --danger:#C24B42; --danger-soft:#F8E4E1; --radius:16px; --radius-sm:10px;
     color-scheme:light;
   }
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]){
-      --bg:#101F26; --surface:#172931; --surface-2:#1E333C; --ink:#EDEAE0; --muted:#9FB2B8;
-      --border:#2B4048; --accent:#6FB8D9; --accent-ink:#0B1A20; --accent-soft:#1E3742;
-      --success:#79C596; --success-soft:#1C3327; --warning:#E0B25C; --warning-soft:#332A16;
-      --danger:#E28880; --danger-soft:#3A211F; color-scheme:dark;
+      --bg:#0B1E29; --surface:#122C3A; --surface-2:#17394A; --ink:#E7F1F5; --muted:#8FB0C0;
+      --border:#204456; --accent:#5FC1E8; --accent-2:#3FCDB8; --accent-ink:#062330; --accent-soft:#183C4C;
+      --success:#7FD1A3; --success-soft:#173829; --warning:#E3BB6E; --warning-soft:#392C15;
+      --danger:#E4948C; --danger-soft:#3D2320; color-scheme:dark;
     }
   }
   *{box-sizing:border-box}
@@ -28,8 +28,10 @@
   .row{display:flex; align-items:center; gap:10px;}
   .space-between{justify-content:space-between;}
   header.app{display:flex; align-items:center; justify-content:space-between; margin-bottom:22px;}
-  header.app .brand{display:flex; flex-direction:column; gap:2px;}
-  header.app .brand .kicker{font-size:12px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:var(--accent);}
+  header.app .brand{display:flex; align-items:center; gap:12px;}
+  header.app .brand-logo{height:38px; width:auto; flex-shrink:0;}
+  header.app .brand-text{display:flex; flex-direction:column; gap:2px;}
+  header.app .brand .kicker{font-size:12px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:var(--accent-2);}
   header.app .brand h1{font-size:21px; font-weight:700;}
   .icon-btn{width:42px; height:42px; border-radius:50%; border:1px solid var(--border); background:var(--surface); display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--ink); flex-shrink:0;}
   .icon-btn:active{transform:scale(0.96);}
@@ -43,7 +45,7 @@
   .field{display:flex; flex-direction:column;}
   .btn{border:none; border-radius:999px; font-size:15px; font-weight:600; padding:13px 20px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:8px; font-family:inherit;}
   .btn:active{transform:scale(0.98);}
-  .btn-primary{background:var(--accent); color:var(--accent-ink);}
+  .btn-primary{background:linear-gradient(135deg, var(--accent), var(--accent-2)); color:var(--accent-ink);}
   .btn-primary:disabled{opacity:0.45; cursor:not-allowed;}
   .btn-secondary{background:var(--surface-2); color:var(--ink); border:1px solid var(--border);}
   .btn-ghost{background:transparent; color:var(--accent); padding:8px 10px;}
@@ -105,8 +107,11 @@
 
 <header class="app">
   <div class="brand">
-    <p class="kicker">Lhotellier Eau</p>
-    <h1>Scan Stock</h1>
+    <img class="brand-logo" src="https://lhotellier-eau.fr/wp-content/uploads/2024/12/cropped-cropped-cropped-logo_Lhotellier_eau_C_q-removebg-preview.png" alt="Lhotellier Eau">
+    <div class="brand-text">
+      <p class="kicker">Lhotellier Eau</p>
+      <h1>QuickStock</h1>
+    </div>
   </div>
   <div class="row" style="gap:8px;">
     <a class="icon-btn" id="btn-open-magasinier" href="historique.html" target="_blank" rel="noopener" aria-label="Historique des sorties (magasinier)" title="Historique des sorties (magasinier)">
@@ -687,7 +692,6 @@
       $("f-ref-manual").value = "";
       $("manual-field").hidden = true;
       refreshMainData();
-      if (historyPollTimer) refreshHistory();
     }).catch(function(err){
       console.error(err);
       toast("Échec de l'enregistrement, réessaie");
