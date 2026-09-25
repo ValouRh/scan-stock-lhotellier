@@ -232,7 +232,7 @@
   }
 
   var referentiel = {};
-  fetch("referentiel.json").then(function(r){ return r.ok ? r.json() : {}; }).then(function(d){ referentiel = d || {}; renderAll(); }).catch(function(){});
+  apiGet("getReferentiel").then(function(res){ referentiel = (res && res.referentiel) || {}; renderAll(); }).catch(function(){});
   function designationFor(ref){
     if (!ref) return "";
     var r = String(ref).trim();
