@@ -698,17 +698,22 @@
 
   function apiGet(action){
     return fetch(APPS_SCRIPT_URL + "?action=" + encodeURIComponent(action), { method: "GET" })
-      .then(function(r){ return r.json(); });
+      .then(function(r){
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        return r.json();
+      });
   }
-  // text/plain avoids a CORS preflight that Apps Script web apps don't handle;
-  // the payload is still valid JSON, just parsed manually server-side.
+  // Les écritures passent aussi en GET (payload encodé en JSON dans un
+  // paramètre d'URL) plutôt qu'en POST : les requêtes POST vers une
+  // application web Apps Script perdent parfois leur contenu en cours de
+  // route (redirection interne de Google), ce qui provoquait des échecs
+  // d'enregistrement silencieux. Le GET est plus fiable ici.
   function apiPost(action, payload){
-    var body = Object.assign({ action: action }, payload || {});
-    return fetch(APPS_SCRIPT_URL, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify(body)
-    }).then(function(r){ return r.json(); });
+    var url = APPS_SCRIPT_URL + "?action=" + encodeURIComponent(action) + "&payload=" + encodeURIComponent(JSON.stringify(payload || {}));
+    return fetch(url, { method: "GET" }).then(function(r){
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    });
   }
 
   function refreshMainData(){
