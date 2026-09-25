@@ -143,7 +143,13 @@
     </div>
     <div class="field">
       <label for="f-magasin">Magasin</label>
-      <select id="f-magasin"></select>
+      <div class="row" style="gap:8px;">
+        <select id="f-magasin" style="flex:1;"></select>
+        <button type="button" class="icon-btn" id="btn-locate" aria-label="Détecter le magasin le plus proche" title="Détecter le magasin le plus proche">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+        </button>
+      </div>
+      <p class="hint" id="locate-hint" style="margin-top:6px;"></p>
     </div>
     <div class="field">
       <label for="f-chantier">Chantier</label>
@@ -357,6 +363,75 @@
   }
   $("f-magasin").addEventListener("change", function(){ ls_set("qrstock_magasin", this.value); updateSaveEnabled(); });
   renderMagasinOptions();
+
+  // ================================================================
+  // GÉOLOCALISATION — détecte automatiquement le magasin le plus
+  // proche à partir des 5 adresses Lhotellier Eau. Fonctionne ici
+  // (site normal, HTTPS) alors que c'était bloqué dans l'aperçu Claude.
+  // Si un nouveau magasin est ajouté par l'admin sans coordonnées
+  // connues ici, il est simplement ignoré par la détection (mais reste
+  // sélectionnable à la main).
+  // ================================================================
+  var MAGASIN_COORDS = {
+    "Conty":    { lat: 49.7414, lng: 2.1525 },  // SPEE-SP, 3 rue de la gare, 80160 Conty
+    "CCTC":     { lat: 49.6492, lng: 1.0972 },  // Rue des Fées, 76850 Fresnay-le-Long
+    "Blangy":   { lat: 49.9325, lng: 1.6294 },  // 31 impasse de la Bresle, 76340 Blangy-sur-Bresle
+    "Longueau": { lat: 49.8708, lng: 2.3569 },  // 77 rue Lucette Bonnard, 80330 Longueau
+    "Beauvais": { lat: 49.4303, lng: 2.0952 }   // 30 avenue Salvador Allende, 60000 Beauvais
+  };
+
+  function haversineKm(lat1, lon1, lat2, lon2){
+    var R = 6371;
+    var dLat = (lat2 - lat1) * Math.PI / 180;
+    var dLon = (lon2 - lon1) * Math.PI / 180;
+    var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  }
+
+  function findNearestMagasin(lat, lng){
+    var best = null, bestDist = Infinity;
+    state.magasins.forEach(function(name){
+      var c = MAGASIN_COORDS[name];
+      if (!c) return;
+      var d = haversineKm(lat, lng, c.lat, c.lng);
+      if (d < bestDist){ bestDist = d; best = { name: name, dist: d }; }
+    });
+    return best;
+  }
+
+  function locateMagasin(auto){
+    if (!navigator.geolocation){
+      if (!auto) toast("Géolocalisation non disponible sur cet appareil");
+      return;
+    }
+    if (!auto){ $("locate-hint").textContent = "Localisation en cours…"; }
+    navigator.geolocation.getCurrentPosition(function(pos){
+      var nearest = findNearestMagasin(pos.coords.latitude, pos.coords.longitude);
+      if (nearest){
+        $("f-magasin").value = nearest.name;
+        ls_set("qrstock_magasin", nearest.name);
+        updateSaveEnabled();
+        $("locate-hint").textContent = "Magasin détecté par localisation : " + nearest.name + " (~" + Math.round(nearest.dist) + " km).";
+        if (!auto) toast("Magasin détecté : " + nearest.name);
+      } else if (!auto){
+        $("locate-hint").textContent = "";
+        toast("Aucun magasin reconnu à proximité — sélectionne-le à la main.");
+      }
+    }, function(err){
+      var msg = "";
+      if (err && err.code === err.PERMISSION_DENIED) msg = auto ? "" : "Localisation refusée — sélectionne le magasin manuellement.";
+      else msg = auto ? "" : "Localisation impossible pour le moment.";
+      if (msg) $("locate-hint").textContent = msg;
+      if (!auto && msg) toast(msg);
+    }, { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 });
+  }
+
+  $("btn-locate").addEventListener("click", function(){ locateMagasin(false); });
+  // tentative automatique et silencieuse à l'ouverture, seulement si aucun
+  // magasin n'est déjà mémorisé sur cet appareil (on ne veut pas écraser un
+  // choix manuel précédent à chaque rechargement)
+  if (!ls_get("qrstock_magasin", "")) { locateMagasin(true); }
 
   $("f-chantier").addEventListener("input", updateSaveEnabled);
 
