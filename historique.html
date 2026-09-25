@@ -118,7 +118,7 @@
       <div class="card">
         <div class="filters">
           <div class="field" style="min-width:220px;">
-            <label for="f-search">Recherche (référence, désignation, nom, chantier)</label>
+            <label for="f-search">Recherche (référence, désignation, nom, chantier, BT)</label>
             <input type="text" id="f-search" placeholder="Ex. pompe, Julien, Conty…">
           </div>
           <div class="field">
@@ -145,7 +145,7 @@
         <p class="hint" id="results-count" style="margin-bottom:10px;">—</p>
         <div style="overflow-x:auto;">
           <table class="history" id="history-table">
-            <thead><tr><th>Date</th><th>Nom</th><th>Magasin</th><th>Chantier</th><th>Réf.</th><th>Désignation</th><th>Qté</th><th>Statut</th></tr></thead>
+            <thead><tr><th>Date</th><th>Nom</th><th>Magasin</th><th>Chantier</th><th>BT</th><th>Réf.</th><th>Désignation</th><th>Qté</th><th>Statut</th></tr></thead>
             <tbody id="history-body"></tbody>
           </table>
         </div>
@@ -334,7 +334,7 @@
       if (statut && v.statut !== statut) return false;
       if (q){
         var desig = designationFor(v.ref).toLowerCase();
-        var hay = [v.ref, desig, v.nom, v.chantier, v.magasin].join(" ").toLowerCase();
+        var hay = [v.ref, desig, v.nom, v.chantier, v.magasin, v.bt].join(" ").toLowerCase();
         if (hay.indexOf(q) === -1) return false;
       }
       return true;
@@ -355,6 +355,7 @@
         "<td>" + escapeHtml(v.nom) + "</td>" +
         "<td>" + escapeHtml(v.magasin) + "</td>" +
         "<td>" + escapeHtml(v.chantier) + "</td>" +
+        '<td class="mono">' + (v.bt ? escapeHtml(v.bt) : '<span class="hint">—</span>') + "</td>" +
         '<td class="mono">' + escapeHtml(v.ref) + "</td>" +
         "<td>" + escapeHtml(designationFor(v.ref)) + "</td>" +
         "<td>" + escapeHtml(v.qty) + "</td>" +
