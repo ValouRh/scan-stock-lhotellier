@@ -3,13 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Historique & Statistiques — QuickStock Lhotellier Eau</title>
+<title>Sorties, retours & statistiques — QuickStock Lhotellier Eau</title>
 <style>
   :root{
     --bg:#F5F8FA; --surface:#FFFFFF; --surface-2:#E9F1F5; --ink:#0D2B3E; --muted:#5C7688;
     --border:#D3E1E8; --accent:#0B6FA6; --accent-2:#12A594; --accent-ink:#FFFFFF; --accent-soft:#E1F0F6;
     --success:#2E9463; --success-soft:#E1F3E8; --warning:#C08A2E; --warning-soft:#F6EEDC;
     --danger:#C24B42; --danger-soft:#F8E4E1; --radius:16px; --radius-sm:10px;
+    --ret:#23865A; --ret-ink:#FFFFFF; --ret-soft:#E1F3E8;
     color-scheme:light;
   }
   @media (prefers-color-scheme: dark){
@@ -17,7 +18,8 @@
       --bg:#0B1E29; --surface:#122C3A; --surface-2:#17394A; --ink:#E7F1F5; --muted:#8FB0C0;
       --border:#204456; --accent:#5FC1E8; --accent-2:#3FCDB8; --accent-ink:#062330; --accent-soft:#183C4C;
       --success:#7FD1A3; --success-soft:#173829; --warning:#E3BB6E; --warning-soft:#392C15;
-      --danger:#E4948C; --danger-soft:#3D2320; color-scheme:dark;
+      --danger:#E4948C; --danger-soft:#3D2320;
+      --ret:#7FD1A3; --ret-ink:#072316; --ret-soft:#173829; color-scheme:dark;
     }
   }
   *{box-sizing:border-box}
@@ -70,6 +72,45 @@
   .sheet{background:var(--bg); width:100%; max-width:380px; border-radius:20px; padding:26px 22px; display:flex; flex-direction:column; gap:16px;}
   .toast{position:fixed; left:50%; transform:translateX(-50%); bottom:24px; background:var(--ink); color:var(--bg); padding:11px 18px; border-radius:999px; font-size:13.5px; font-weight:600; box-shadow:0 6px 20px rgba(0,0,0,0.25); z-index:80; opacity:0; pointer-events:none; transition:opacity .2s, transform .2s;}
   .toast.show{opacity:1; transform:translateX(-50%) translateY(-6px);}
+  /* type sortie / retour */
+  .type-pill{display:inline-flex; align-items:center; font-size:11px; font-weight:800; letter-spacing:0.5px; text-transform:uppercase; padding:4px 9px; border-radius:999px; white-space:nowrap;}
+  .type-pill.sortie{background:var(--accent); color:var(--accent-ink);}
+  .type-pill.retour{background:var(--ret); color:var(--ret-ink);}
+  .qty-out{font-weight:800; color:var(--accent);}
+  .qty-ret{font-weight:800; color:var(--ret);}
+  .tab-count{display:inline-flex; align-items:center; justify-content:center; min-width:20px; height:20px; padding:0 6px; margin-left:6px; border-radius:10px; background:var(--accent); color:var(--accent-ink); font-size:11.5px; font-weight:800;}
+  .tab-count:empty{display:none;}
+  /* vue « À saisir dans la GMAO » */
+  .net-section{margin-bottom:26px;}
+  .net-section h3{font-size:15px; display:flex; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap;}
+  .net-section .sec-count{font-size:12px; font-weight:800; padding:3px 10px; border-radius:999px;}
+  .net-section.sortir .sec-count{background:var(--accent); color:var(--accent-ink);}
+  .net-section.remettre .sec-count{background:var(--ret); color:var(--ret-ink);}
+  .net-section.zero .sec-count{background:var(--surface-2); color:var(--muted);}
+  .net-card{display:flex; align-items:stretch; gap:16px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:14px 16px; margin-bottom:10px; flex-wrap:wrap;}
+  .net-qty{width:112px; flex-shrink:0; border-radius:12px; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:10px 6px; text-align:center;}
+  .net-qty .net-n{font-size:34px; font-weight:800; line-height:1;}
+  .net-qty .net-verb{font-size:11px; font-weight:800; letter-spacing:0.6px; text-transform:uppercase; margin-top:6px; line-height:1.2;}
+  .net-card.sortir .net-qty{background:var(--accent); color:var(--accent-ink);}
+  .net-card.remettre .net-qty{background:var(--ret); color:var(--ret-ink);}
+  .net-card.zero .net-qty{background:var(--surface-2); color:var(--muted);}
+  .net-card.zero{opacity:0.9;}
+  .net-main{flex:1; min-width:240px; display:flex; flex-direction:column; gap:4px; justify-content:center;}
+  .net-ref{font-size:15.5px; line-height:1.3;}
+  .net-ref .mono{font-weight:700; margin-right:6px;}
+  .net-who{font-size:13.5px; font-weight:600;}
+  .net-calc{display:inline-flex; width:fit-content; font-size:13px; font-weight:700; background:var(--surface-2); border-radius:8px; padding:4px 10px;}
+  .net-meta{font-size:12.5px; color:var(--muted);}
+  .net-card details{font-size:12.5px; color:var(--muted); margin-top:2px;}
+  .net-card details summary{cursor:pointer; width:fit-content;}
+  .net-card details ul{margin:6px 0 0; padding-left:18px; display:flex; flex-direction:column; gap:3px;}
+  .net-action{display:flex; align-items:center; flex-shrink:0;}
+  .btn-done{background:var(--success); color:#fff; padding:12px 18px; font-size:14px;}
+  .btn-done.sortir{background:var(--accent); color:var(--accent-ink);}
+  .btn-done.remettre{background:var(--ret); color:var(--ret-ink);}
+  .btn-done.zero{background:var(--surface-2); color:var(--ink); border:1px solid var(--border);}
+  .net-allclear{text-align:center; padding:44px 16px; color:var(--muted); font-size:15px;}
+  .net-allclear b{display:block; font-size:19px; color:var(--success); margin-bottom:6px;}
   /* stats */
   .stat-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(150px,1fr)); gap:12px; margin-bottom:20px;}
   .stat-tile{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm); padding:16px;}
@@ -98,7 +139,7 @@
       <img class="brand-logo" src="https://lhotellier-eau.fr/wp-content/uploads/2024/12/cropped-cropped-cropped-logo_Lhotellier_eau_C_q-removebg-preview.png" alt="Lhotellier Eau">
       <div class="brand-text">
         <p class="kicker">QuickStock · Lhotellier Eau</p>
-        <h1>Historique & statistiques des sorties</h1>
+        <h1>Sorties, retours & statistiques</h1>
       </div>
     </div>
     <div class="row" id="header-actions" hidden>
@@ -110,11 +151,29 @@
 
   <div id="app-body" hidden>
     <div class="tabs">
-      <div class="tab active" data-tab="historique">Historique</div>
+      <div class="tab active" data-tab="net">À saisir dans la GMAO<span class="tab-count" id="net-count"></span></div>
+      <div class="tab" data-tab="historique">Historique</div>
       <div class="tab" data-tab="stats">Statistiques</div>
     </div>
 
-    <div id="view-historique">
+    <div id="view-net">
+      <div class="card">
+        <p class="hint" style="margin:0 0 12px;"><b>Ce qu'il reste à faire dans la GMAO</b>, calculé automatiquement : pièces prises − pièces rapportées, par technicien et par article. Une pièce rapportée le soir n'est pas à ressortir.</p>
+        <div class="filters">
+          <div class="field" style="min-width:220px;">
+            <label for="n-search">Recherche (référence, désignation, nom, chantier, BT)</label>
+            <input type="text" id="n-search" placeholder="Ex. pompe, Julien, Conty…">
+          </div>
+          <div class="field">
+            <label for="n-magasin">Magasin</label>
+            <select id="n-magasin"><option value="">Tous</option></select>
+          </div>
+        </div>
+      </div>
+      <div id="net-sections"></div>
+    </div>
+
+    <div id="view-historique" hidden>
       <div class="card">
         <div class="filters">
           <div class="field" style="min-width:220px;">
@@ -128,6 +187,14 @@
           <div class="field">
             <label for="f-magasin">Magasin</label>
             <select id="f-magasin"><option value="">Tous</option></select>
+          </div>
+          <div class="field">
+            <label for="f-type">Type</label>
+            <select id="f-type">
+              <option value="">Tous</option>
+              <option value="sortie">Sorties</option>
+              <option value="retour">Retours en stock</option>
+            </select>
           </div>
           <div class="field">
             <label for="f-statut">Statut</label>
@@ -145,11 +212,11 @@
         <p class="hint" id="results-count" style="margin-bottom:10px;">—</p>
         <div style="overflow-x:auto;">
           <table class="history" id="history-table">
-            <thead><tr><th>Date</th><th>Nom</th><th>Magasin</th><th>Chantier</th><th>BT</th><th>Réf.</th><th>Désignation</th><th>Qté</th><th>Statut</th></tr></thead>
+            <thead><tr><th>Date</th><th>Type</th><th>Nom</th><th>Magasin</th><th>Chantier</th><th>BT</th><th>Réf.</th><th>Désignation</th><th>Qté</th><th>Statut</th></tr></thead>
             <tbody id="history-body"></tbody>
           </table>
         </div>
-        <p class="empty-state" id="history-empty" hidden>Aucune sortie ne correspond à ces filtres.</p>
+        <p class="empty-state" id="history-empty" hidden>Aucune ligne ne correspond à ces filtres.</p>
       </div>
     </div>
 
@@ -164,13 +231,13 @@
       <div class="stat-grid" id="stat-tiles"></div>
 
       <div class="card">
-        <h3 style="font-size:15px; margin-bottom:14px;">Évolution par mois</h3>
+        <h3 style="font-size:15px; margin-bottom:14px;">Évolution par mois <span class="hint">(quantité nette)</span></h3>
         <div class="month-chart" id="month-chart"></div>
       </div>
 
       <div class="stats-cols">
         <div class="card">
-          <h3 style="font-size:15px; margin-bottom:14px;">Top articles sortis</h3>
+          <h3 style="font-size:15px; margin-bottom:14px;">Top articles sortis <span class="hint">(net des retours)</span></h3>
           <div class="bar-list" id="stat-articles"></div>
         </div>
         <div class="card">
@@ -269,6 +336,7 @@
   Array.prototype.forEach.call(document.querySelectorAll(".tab"), function(tab){
     tab.addEventListener("click", function(){
       Array.prototype.forEach.call(document.querySelectorAll(".tab"), function(t){ t.classList.toggle("active", t === tab); });
+      $("view-net").hidden = tab.dataset.tab !== "net";
       $("view-historique").hidden = tab.dataset.tab !== "historique";
       $("view-stats").hidden = tab.dataset.tab !== "stats";
       if (tab.dataset.tab === "stats") renderStats();
@@ -308,18 +376,23 @@
         yearList.map(function(y){ return '<option value="' + y + '">' + y + '</option>'; }).join("");
       if (yearList.indexOf(current) !== -1) sel.value = current;
     });
-    var magSel = $("f-magasin");
-    var currentMag = magSel.value;
-    magSel.innerHTML = '<option value="">Tous</option>' + magasinList.map(function(m){ return '<option value="' + escapeHtml(m) + '">' + escapeHtml(m) + '</option>'; }).join("");
-    if (magasinList.indexOf(currentMag) !== -1) magSel.value = currentMag;
+    [$("f-magasin"), $("n-magasin")].forEach(function(magSel){
+      var currentMag = magSel.value;
+      magSel.innerHTML = '<option value="">Tous</option>' + magasinList.map(function(m){ return '<option value="' + escapeHtml(m) + '">' + escapeHtml(m) + '</option>'; }).join("");
+      if (magasinList.indexOf(currentMag) !== -1) magSel.value = currentMag;
+    });
   }
 
-  ["f-search","f-year","f-magasin","f-statut"].forEach(function(id){
+  ["f-search","f-year","f-magasin","f-type","f-statut"].forEach(function(id){
     $(id).addEventListener("input", renderHistoryTable);
     $(id).addEventListener("change", renderHistoryTable);
   });
+  ["n-search","n-magasin"].forEach(function(id){
+    $(id).addEventListener("input", renderNet);
+    $(id).addEventListener("change", renderNet);
+  });
   $("btn-reset-filters").addEventListener("click", function(){
-    $("f-search").value = ""; $("f-year").value = ""; $("f-magasin").value = ""; $("f-statut").value = "";
+    $("f-search").value = ""; $("f-year").value = ""; $("f-magasin").value = ""; $("f-type").value = ""; $("f-statut").value = "";
     renderHistoryTable();
   });
 
@@ -328,37 +401,42 @@
     var year = $("f-year").value;
     var magasin = $("f-magasin").value;
     var statut = $("f-statut").value;
+    var type = $("f-type").value;
     return allHistory.filter(function(v){
       if (year && (v.ts || "").slice(0,4) !== year) return false;
       if (magasin && v.magasin !== magasin) return false;
+      if (type && typeOf(v) !== type) return false;
       if (statut && v.statut !== statut) return false;
       if (q){
         var desig = designationFor(v.ref).toLowerCase();
-        var hay = [v.ref, desig, v.nom, v.chantier, v.magasin, v.bt].join(" ").toLowerCase();
+        var hay = [v.ref, desig, v.nom, v.chantier, v.magasin, v.bt, typeOf(v) === "retour" ? "retour" : "sortie"].join(" ").toLowerCase();
         if (hay.indexOf(q) === -1) return false;
       }
       return true;
     });
   }
 
-  function renderAll(){ renderHistoryTable(); if (!$("view-stats").hidden) renderStats(); }
+  function typeOf(v){ return v.type === "retour" ? "retour" : "sortie"; }
+  function renderAll(){ renderNet(); renderHistoryTable(); if (!$("view-stats").hidden) renderStats(); }
 
   function renderHistoryTable(){
     var rows = filteredHistory();
-    $("results-count").textContent = rows.length + " sortie" + (rows.length > 1 ? "s" : "") + " (sur " + allHistory.length + " au total)";
+    $("results-count").textContent = rows.length + " ligne" + (rows.length > 1 ? "s" : "") + " (sur " + allHistory.length + " au total)";
     $("history-empty").hidden = rows.length !== 0;
     var body = $("history-body");
     body.innerHTML = rows.map(function(v){
       var treated = v.statut === "traité";
+      var isRet = typeOf(v) === "retour";
       return '<tr class="' + (treated ? "treated" : "pending") + '">' +
         "<td>" + fmtDate(v.ts) + "</td>" +
+        '<td><span class="type-pill ' + (isRet ? "retour" : "sortie") + '">' + (isRet ? "Retour" : "Sortie") + "</span></td>" +
         "<td>" + escapeHtml(v.nom) + "</td>" +
         "<td>" + escapeHtml(v.magasin) + "</td>" +
         "<td>" + escapeHtml(v.chantier) + "</td>" +
         '<td class="mono">' + (v.bt ? escapeHtml(v.bt) : '<span class="hint">—</span>') + "</td>" +
         '<td class="mono">' + escapeHtml(v.ref) + "</td>" +
         "<td>" + escapeHtml(designationFor(v.ref)) + "</td>" +
-        "<td>" + escapeHtml(v.qty) + "</td>" +
+        '<td><span class="' + (isRet ? "qty-ret" : "qty-out") + '">' + (isRet ? "+" : "&minus;") + escapeHtml(v.qty) + "</span></td>" +
         '<td><button type="button" class="status-badge ' + (treated ? "treated" : "pending") + '" data-id="' + v.id + '" data-statut="' + (treated ? "non traité" : "traité") + '">' +
           (treated ? "Traité" : "Non traité") + "</button></td></tr>";
     }).join("");
@@ -384,6 +462,149 @@
     });
   }
 
+  // ================================================================
+  // « À SAISIR DANS LA GMAO » — calcul du net.
+  // On ne regarde que les lignes pas encore traitées, regroupées par
+  // magasin + technicien + article :
+  //     net = pièces prises (sorties) − pièces rapportées (retours)
+  //  net > 0  → à SORTIR dans la GMAO (de ce net seulement)
+  //  net = 0  → pièce rapportée : RIEN à saisir
+  //  net < 0  → plus de retours que de sorties non traitées (la sortie a déjà
+  //             été saisie, ou la pièce n'avait pas été scannée) : à REMETTRE
+  //             EN STOCK dans la GMAO
+  // Le bouton « Fait dans la GMAO » marque toutes les lignes du groupe traitées ;
+  // un retour ultérieur ressortira alors en « à remettre en stock ».
+  // ================================================================
+  function normRef(r){
+    var t = String(r == null ? "" : r).trim();
+    return (/^\d+$/.test(t) && t.length < 5) ? ("00000" + t).slice(-5) : t.toLowerCase();
+  }
+  function computeGroups(rows){
+    var map = {};
+    rows.forEach(function(v){
+      if (v.statut === "traité") return;
+      var key = [String(v.magasin || "").trim().toLowerCase(), String(v.nom || "").trim().toLowerCase(), normRef(v.ref)].join("\u0001");
+      var g = map[key];
+      if (!g){ g = map[key] = { magasin: v.magasin, nom: v.nom, ref: v.ref, out: 0, ret: 0, ids: [], lines: [], lastTs: "" }; }
+      var q = Number(v.qty) || 0;
+      if (typeOf(v) === "retour") g.ret += q; else g.out += q;
+      g.ids.push(v.id);
+      g.lines.push(v);
+      if ((v.ts || "") > g.lastTs) g.lastTs = v.ts || "";
+    });
+    return Object.keys(map).map(function(k){ var g = map[k]; g.net = g.out - g.ret; return g; })
+      .sort(function(a, b){ return a.lastTs < b.lastTs ? 1 : (a.lastTs > b.lastTs ? -1 : 0); });
+  }
+
+  var netGroups = []; // groupes affichés (pour retrouver le groupe cliqué via data-idx)
+
+  function uniq(arr){ var seen = {}, out = []; arr.forEach(function(x){ if (x && !seen[x]){ seen[x] = true; out.push(x); } }); return out; }
+
+  function netCardHtml(g, idx, kind){
+    var desig = designationFor(g.ref);
+    var n = Math.abs(g.net);
+    var verb = kind === "sortir" ? "à sortir" : (kind === "remettre" ? "à remettre en stock" : "rapporté");
+    var qtyBlock = '<div class="net-qty"><span class="net-n">' + (kind === "sortir" ? "&minus;" : (kind === "remettre" ? "+" : "")) + n + '</span><span class="net-verb">' + verb + '</span></div>';
+    var chantiers = uniq(g.lines.filter(function(l){ return typeOf(l) !== "retour"; }).map(function(l){ return l.chantier; }));
+    var retChantiers = uniq(g.lines.filter(function(l){ return typeOf(l) === "retour"; }).map(function(l){ return l.chantier; }));
+    var bts = uniq(g.lines.map(function(l){ return l.bt; }));
+    var meta = [];
+    if (chantiers.length) meta.push("Chantier : " + chantiers.map(escapeHtml).join(", "));
+    else if (retChantiers.length) meta.push("Chantier d'origine : " + retChantiers.map(escapeHtml).join(", "));
+    if (bts.length) meta.push("BT : " + bts.map(escapeHtml).join(", "));
+    var calc = "Pris " + g.out + " &minus; Rapporté " + g.ret + " = " + (g.net < 0 ? "&minus;" + n : g.net) +
+      (kind === "zero" ? " → rien à saisir" : "");
+    var detail = g.lines.slice().sort(function(a, b){ return (a.ts || "") < (b.ts || "") ? -1 : 1; }).map(function(l){
+      var isRet = typeOf(l) === "retour";
+      return "<li>" + fmtDate(l.ts) + " — " + (isRet ? "<b>rapporté</b> ×" : "pris ×") + escapeHtml(l.qty) +
+        (l.chantier ? " · " + escapeHtml(l.chantier) : "") + (l.bt ? " · BT " + escapeHtml(l.bt) : "") + "</li>";
+    }).join("");
+    var btnLabel = kind === "zero" ? "Archiver" : "Fait dans la GMAO ✓";
+    return '<div class="net-card ' + kind + '">' + qtyBlock +
+      '<div class="net-main">' +
+        '<div class="net-ref"><span class="mono">' + escapeHtml(g.ref) + '</span>' + (desig ? "<b>" + escapeHtml(desig) + "</b>" : "") + "</div>" +
+        '<div class="net-who">' + escapeHtml(g.nom || "—") + " · " + escapeHtml(g.magasin || "—") + "</div>" +
+        '<div class="net-calc">' + calc + "</div>" +
+        (meta.length ? '<div class="net-meta">' + meta.join(" · ") + "</div>" : "") +
+        "<details><summary>Détail (" + g.lines.length + " ligne" + (g.lines.length > 1 ? "s" : "") + ")</summary><ul>" + detail + "</ul></details>" +
+      "</div>" +
+      '<div class="net-action"><button type="button" class="btn btn-done ' + kind + '" data-idx="' + idx + '">' + btnLabel + "</button></div>" +
+      "</div>";
+  }
+
+  function renderNet(){
+    var q = $("n-search").value.trim().toLowerCase();
+    var magasin = $("n-magasin").value;
+    var rows = allHistory.filter(function(v){
+      if (magasin && v.magasin !== magasin) return false;
+      if (q){
+        var hay = [v.ref, designationFor(v.ref), v.nom, v.chantier, v.magasin, v.bt].join(" ").toLowerCase();
+        if (hay.indexOf(q) === -1) return false;
+      }
+      return true;
+    });
+    netGroups = computeGroups(rows);
+    var sortir = [], remettre = [], zero = [];
+    netGroups.forEach(function(g, i){
+      (g.net > 0 ? sortir : (g.net < 0 ? remettre : zero)).push({ g: g, i: i });
+    });
+    $("net-count").textContent = (sortir.length + remettre.length) || "";
+
+    function section(kind, title, hint, items, extra){
+      if (!items.length) return "";
+      return '<div class="net-section ' + kind + '"><h3>' + title + ' <span class="sec-count">' + items.length + "</span>" + (extra || "") + "</h3>" +
+        (hint ? '<p class="hint" style="margin:-4px 0 12px;">' + hint + "</p>" : "") +
+        items.map(function(it){ return netCardHtml(it.g, it.i, kind); }).join("") + "</div>";
+    }
+    var html = section("sortir", "À sortir dans la GMAO", "Pièces prises et pas encore rapportées.", sortir) +
+      section("remettre", "À remettre en stock dans la GMAO", "Pièces rapportées alors que la sortie était déjà saisie.", remettre) +
+      section("zero", "Rapportées — rien à saisir", "Pris puis rapporté : aucune écriture dans la GMAO. Archive-les pour les faire disparaître.", zero,
+        ' <button type="button" class="btn btn-secondary" id="btn-archive-all" style="padding:6px 14px; font-size:12.5px;">Tout archiver</button>');
+    if (!html){
+      html = '<div class="net-allclear"><b>✓ Tout est à jour</b>Rien à saisir dans la GMAO pour le moment.</div>';
+    }
+    $("net-sections").innerHTML = html;
+    Array.prototype.forEach.call($("net-sections").querySelectorAll(".btn-done"), function(btn){
+      btn.addEventListener("click", function(){ markGroupsDone([netGroups[Number(btn.dataset.idx)]], btn); });
+    });
+    var all = $("btn-archive-all");
+    if (all) all.addEventListener("click", function(){ markGroupsDone(zero.map(function(it){ return it.g; }), all); });
+  }
+
+  function markGroupsDone(groups, btn){
+    var ids = [];
+    groups.forEach(function(g){ ids = ids.concat(g.ids); });
+    if (!ids.length) return;
+    btn.disabled = true;
+    apiPost("setStatusBatch", { ids: ids, statut: "traité" }).then(function(res){
+      if (!res || !res.ok) throw new Error((res && res.error) || "erreur");
+      var done = {}; ids.forEach(function(id){ done[id] = true; });
+      allHistory.forEach(function(v){ if (done[v.id]) v.statut = "traité"; });
+      renderAll();
+      toast(groups.length > 1 ? groups.length + " éléments archivés" : "Marqué comme fait dans la GMAO");
+    }).catch(function(err){
+      console.error(err);
+      toast("Échec de la mise à jour — réessaie");
+      btn.disabled = false;
+    });
+  }
+
+  // ---------- export CSV (respecte les filtres de l'onglet Historique) ----------
+  $("btn-export").addEventListener("click", function(){
+    var rows = filteredHistory();
+    function cell(x){ return '"' + String(x == null ? "" : x).replace(/"/g, '""') + '"'; }
+    var lines = [["Date","Type","Nom","Magasin","Chantier","BT","Référence","Désignation","Quantité","Statut"].map(cell).join(";")];
+    rows.forEach(function(v){
+      lines.push([fmtDate(v.ts), typeOf(v) === "retour" ? "Retour" : "Sortie", v.nom, v.magasin, v.chantier, v.bt, v.ref, designationFor(v.ref), v.qty, v.statut].map(cell).join(";"));
+    });
+    var blob = new Blob(["﻿" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "quickstock_" + new Date().toISOString().slice(0, 10) + ".csv";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
+  });
+
   // ---------- stats ----------
   $("stat-year").addEventListener("change", renderStats);
 
@@ -395,18 +616,22 @@
   function renderStats(){
     var rows = statsScope();
 
-    var totalSorties = rows.length;
-    var totalQty = rows.reduce(function(s,v){ return s + (Number(v.qty) || 0); }, 0);
+    var sorties = rows.filter(function(v){ return typeOf(v) !== "retour"; });
+    var retours = rows.filter(function(v){ return typeOf(v) === "retour"; });
+    var qtyOut = sorties.reduce(function(s,v){ return s + (Number(v.qty) || 0); }, 0);
+    var qtyRet = retours.reduce(function(s,v){ return s + (Number(v.qty) || 0); }, 0);
     var distinctArticles = {}, distinctPersonnes = {};
-    rows.forEach(function(v){ distinctArticles[v.ref] = true; if (v.nom) distinctPersonnes[v.nom] = true; });
-    var pendingCount = rows.filter(function(v){ return v.statut !== "traité"; }).length;
+    sorties.forEach(function(v){ distinctArticles[v.ref] = true; });
+    rows.forEach(function(v){ if (v.nom) distinctPersonnes[String(v.nom).trim().toLowerCase()] = true; });
+    var toDo = computeGroups(rows).filter(function(g){ return g.net !== 0; }).length;
 
     $("stat-tiles").innerHTML = [
-      { label: "Sorties enregistrées", value: totalSorties },
-      { label: "Quantité totale sortie", value: totalQty },
+      { label: "Sorties enregistrées", value: sorties.length },
+      { label: "Retours en stock", value: retours.length },
+      { label: "Quantité nette sortie (sorties − retours)", value: qtyOut - qtyRet },
       { label: "Articles distincts sortis", value: Object.keys(distinctArticles).length },
       { label: "Techniciens actifs", value: Object.keys(distinctPersonnes).length },
-      { label: "En attente de traitement", value: pendingCount }
+      { label: "À saisir dans la GMAO", value: toDo }
     ].map(function(t){
       return '<div class="stat-tile"><div class="stat-value">' + t.value + '</div><div class="stat-label">' + t.label + '</div></div>';
     }).join("");
@@ -425,9 +650,11 @@
     var totals = {};
     rows.forEach(function(v){
       var k = keyFn(v);
-      totals[k] = (totals[k] || 0) + (Number(v.qty) || 0);
+      // quantité NETTE : un retour en stock vient en déduction des sorties
+      totals[k] = (totals[k] || 0) + (typeOf(v) === "retour" ? -1 : 1) * (Number(v.qty) || 0);
     });
     return Object.keys(totals).map(function(k){ return { key: k, qty: totals[k] }; })
+      .filter(function(e){ return e.qty > 0; })
       .sort(function(a,b){ return b.qty - a.qty; })
       .slice(0, 10);
   }
@@ -451,8 +678,9 @@
     var totals = new Array(12).fill(0);
     rows.forEach(function(v){
       var m = parseInt((v.ts || "").slice(5,7), 10);
-      if (m >= 1 && m <= 12) totals[m-1] += (Number(v.qty) || 0);
+      if (m >= 1 && m <= 12) totals[m-1] += (typeOf(v) === "retour" ? -1 : 1) * (Number(v.qty) || 0);
     });
+    totals = totals.map(function(t){ return Math.max(0, t); });
     var max = Math.max.apply(null, totals.concat([1]));
     var el = $("month-chart");
     if (!rows.length){ el.innerHTML = '<p class="hint" style="margin:0;">Aucune donnée sur cette période.</p>'; return; }
