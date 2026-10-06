@@ -10,6 +10,7 @@
     --border:#D3E1E8; --accent:#0B6FA6; --accent-2:#12A594; --accent-ink:#FFFFFF; --accent-soft:#E1F0F6;
     --success:#2E9463; --success-soft:#E1F3E8; --warning:#C08A2E; --warning-soft:#F6EEDC;
     --danger:#C24B42; --danger-soft:#F8E4E1; --radius:16px; --radius-sm:10px;
+    --ret:#23865A; --ret-ink:#FFFFFF; --ret-soft:#E1F3E8;
     color-scheme:light;
   }
   @media (prefers-color-scheme: dark){
@@ -17,7 +18,8 @@
       --bg:#0B1E29; --surface:#122C3A; --surface-2:#17394A; --ink:#E7F1F5; --muted:#8FB0C0;
       --border:#204456; --accent:#5FC1E8; --accent-2:#3FCDB8; --accent-ink:#062330; --accent-soft:#183C4C;
       --success:#7FD1A3; --success-soft:#173829; --warning:#E3BB6E; --warning-soft:#392C15;
-      --danger:#E4948C; --danger-soft:#3D2320; color-scheme:dark;
+      --danger:#E4948C; --danger-soft:#3D2320;
+      --ret:#7FD1A3; --ret-ink:#072316; --ret-soft:#173829; color-scheme:dark;
     }
   }
   *{box-sizing:border-box}
@@ -95,6 +97,25 @@
   #scanner-box{width:min(72vw,320px); height:min(72vw,320px); border:3px solid rgba(255,255,255,0.85); border-radius:20px; box-shadow:0 0 0 2000px rgba(0,0,0,0.35);}
   #scanner-bottombar{position:relative; z-index:2; padding:18px 16px calc(24px + env(safe-area-inset-bottom,0px)); display:flex; flex-direction:column; align-items:center; gap:10px;}
   #scanner-status{color:#fff; font-size:14px; text-align:center; min-height:20px;}
+  /* écran d'accueil : choix Sortie / Retour */
+  .home-title{font-size:22px; font-weight:700; margin:4px 0 6px;}
+  .home-sub{color:var(--muted); font-size:14px; margin:0 0 18px; line-height:1.4;}
+  .home-btn{width:100%; display:flex; align-items:center; gap:16px; text-align:left; border:none; border-radius:22px; padding:22px 20px; margin-bottom:14px; cursor:pointer; font-family:inherit; min-height:118px;}
+  .home-btn:active{transform:scale(0.985);}
+  .home-btn .home-ico{width:56px; height:56px; border-radius:16px; background:rgba(255,255,255,0.22); display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .home-btn .home-label{font-size:24px; font-weight:700; line-height:1.15; display:block;}
+  .home-btn .home-desc{font-size:14px; font-weight:500; opacity:0.92; margin-top:4px; display:block; line-height:1.35;}
+  .home-btn.out{background:linear-gradient(135deg, var(--accent), var(--accent-2)); color:var(--accent-ink);}
+  .home-btn.ret{background:var(--ret); color:var(--ret-ink);}
+  .home-btn.ret .home-ico{background:rgba(255,255,255,0.25);}
+  /* bandeau de mode dans le formulaire */
+  .mode-banner{display:flex; align-items:center; gap:12px; border-radius:var(--radius); padding:12px 14px; margin-bottom:16px;}
+  .mode-banner.out{background:var(--accent-soft); color:var(--accent);}
+  .mode-banner.ret{background:var(--ret-soft); color:var(--ret);}
+  .mode-banner .mode-back{width:40px; height:40px; border-radius:50%; border:none; background:var(--surface); color:var(--ink); display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0;}
+  .mode-banner .mode-title{font-size:18px; font-weight:700; line-height:1.15;}
+  .mode-banner .mode-sub{font-size:12.5px; opacity:0.9; margin-top:2px; line-height:1.3;}
+  .btn-ret{background:var(--ret) !important; color:var(--ret-ink) !important;}
   .flash{position:absolute; inset:0; background:#fff; opacity:0; pointer-events:none; z-index:3;}
   .flash.on{opacity:0.55; transition:opacity .08s ease-out;}
 </style>
@@ -123,12 +144,41 @@
   </div>
 </header>
 
-<main id="scan-view">
+<main id="home-view">
+  <h2 class="home-title">Que veux-tu faire ?</h2>
+  <p class="home-sub">Choisis une action, puis scanne les pièces.</p>
+
+  <button type="button" class="home-btn out" id="btn-go-sortie">
+    <span class="home-ico">
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M6 11l6 6 6-6M5 20h14"/></svg>
+    </span>
+    <span><span class="home-label">Sortie de stock</span><span class="home-desc">Je prends des pièces au magasin</span></span>
+  </button>
+
+  <button type="button" class="home-btn ret" id="btn-go-retour">
+    <span class="home-ico">
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V8M6 13l6-6 6 6M5 4h14"/></svg>
+    </span>
+    <span><span class="home-label">Retour en stock</span><span class="home-desc">Je rapporte des pièces que je n'ai pas utilisées</span></span>
+  </button>
+</main>
+
+<main id="scan-view" hidden>
+
+  <div class="mode-banner out" id="mode-banner">
+    <button type="button" class="mode-back" id="btn-back" aria-label="Retour à l'accueil" title="Retour à l'accueil">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <div>
+      <div class="mode-title" id="mode-title">Sortie de stock</div>
+      <div class="mode-sub" id="mode-sub">Je prends des pièces au magasin</div>
+    </div>
+  </div>
 
   <div class="card">
     <div class="field">
       <label for="f-nom">Ton nom</label>
-      <input type="text" id="f-nom" placeholder="Ex. RHUVA ou ValentinR" autocomplete="off">
+      <input type="text" id="f-nom" placeholder="Ex. Julien D." autocomplete="off">
     </div>
     <div class="field">
       <label for="f-magasin">Magasin</label>
@@ -141,18 +191,18 @@
       <p class="hint" id="locate-hint" style="margin-top:6px;"></p>
     </div>
     <div class="field">
-      <label for="f-chantier">Chantier</label>
-      <input type="text" id="f-chantier" placeholder="Ex. DSP AEP CCTC" autocomplete="off">
+      <label for="f-chantier" id="lbl-chantier">Chantier</label>
+      <input type="text" id="f-chantier" placeholder="Ex. Rue de la Gare - Conty" autocomplete="off">
     </div>
     <div class="field">
-      <label for="f-bt">N° de BT Mainta</label>
-      <input type="text" id="f-bt" placeholder="Ex. 100999" autocomplete="off" class="mono">
+      <label for="f-bt" id="lbl-bt">N° de BT Mainta (facultatif)</label>
+      <input type="text" id="f-bt" placeholder="Ex. BT-2026-0148" autocomplete="off" class="mono">
     </div>
   </div>
 
   <div class="card">
     <div class="row space-between">
-      <label style="margin:0">Scanner les articles de cette sortie</label>
+      <label style="margin:0" id="lbl-scan">Scanner les articles de cette sortie</label>
     </div>
     <div class="scan-zone" id="scan-zone">
       <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.6"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h3M20 17.5v3.5h-3"/></svg>
@@ -174,7 +224,7 @@
 
   <div class="card" style="margin-top:0;">
     <div class="row space-between">
-      <h3 style="font-size:15px;">Panier de cette sortie</h3>
+      <h3 style="font-size:15px;" id="lbl-cart">Panier de cette sortie</h3>
       <span class="cart-count" id="cart-count">0</span>
     </div>
     <ul class="list-clean" id="cart-list">
@@ -209,7 +259,7 @@
 
 <div class="toast" id="toast"></div>
 
-<footer class="foot">Outil interne · capture des sorties de stock vers Mainta</footer>
+<footer class="foot">Outil interne · sorties et retours de stock vers Mainta</footer>
 
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
 
@@ -261,6 +311,7 @@
 
   // ---------- state ----------
   var state = {
+    mode: "sortie", // "sortie" ou "retour" — choisi sur l'écran d'accueil
     cart: [], // [{ref, qty}]
     magasins: DEFAULT_MAGASINS.slice(),
     dbReady: false,
@@ -385,9 +436,59 @@
 
   $("f-chantier").addEventListener("input", updateSaveEnabled);
 
+  // Pour une sortie le chantier est obligatoire ; pour un retour il est facultatif
+  // (le technicien rapporte une pièce, il n'a pas toujours le chantier en tête).
   function contextReady(){
-    return !!($("f-nom").value.trim() && $("f-magasin").value && $("f-chantier").value.trim());
+    var chantierOk = state.mode === "retour" || !!$("f-chantier").value.trim();
+    return !!($("f-nom").value.trim() && $("f-magasin").value && chantierOk);
   }
+
+  // ================================================================
+  // ÉCRAN D'ACCUEIL — Sortie / Retour. Le choix est dans l'URL (#sortie,
+  // #retour) pour que le bouton « retour » du téléphone ramène à l'accueil.
+  // ================================================================
+  function applyMode(){
+    var ret = state.mode === "retour";
+    $("mode-banner").className = "mode-banner " + (ret ? "ret" : "out");
+    $("mode-title").textContent = ret ? "Retour en stock" : "Sortie de stock";
+    $("mode-sub").textContent = ret ? "Je rapporte des pièces que je n'ai pas utilisées" : "Je prends des pièces au magasin";
+    $("lbl-chantier").textContent = ret ? "Chantier d'origine (facultatif)" : "Chantier";
+    $("f-chantier").placeholder = ret ? "Si tu t'en souviens" : "Ex. Rue de la Gare - Conty";
+    $("lbl-bt").textContent = ret ? "N° de BT Mainta d'origine (facultatif)" : "N° de BT Mainta (facultatif)";
+    $("lbl-scan").textContent = ret ? "Scanner les pièces rapportées" : "Scanner les articles de cette sortie";
+    $("lbl-cart").textContent = ret ? "Panier de ce retour" : "Panier de cette sortie";
+    $("btn-save").textContent = ret ? "Valider le retour en stock" : "Valider la sortie";
+    $("btn-save").classList.toggle("btn-ret", ret);
+    $("scan-disabled-hint").textContent = ret
+      ? "Renseigne ton nom et le magasin ci-dessus pour commencer à scanner."
+      : "Renseigne ton nom, le magasin et le chantier ci-dessus pour commencer à scanner.";
+  }
+
+  function route(){
+    var h = (location.hash || "").replace("#", "");
+    var home = (h !== "sortie" && h !== "retour");
+    $("home-view").hidden = !home;
+    $("scan-view").hidden = home;
+    if (home){ closeScanner(); return; }
+    if (state.mode !== h){
+      // on change de type d'opération : on ne mélange jamais un panier de sortie et de retour
+      if (state.cart.length){ toast("Panier précédent vidé"); }
+      state.cart = [];
+      $("f-chantier").value = "";
+      $("f-bt").value = "";
+      $("f-ref-manual").value = "";
+      $("manual-field").hidden = true;
+      state.mode = h;
+    }
+    applyMode();
+    renderCart();
+    updateSaveEnabled();
+    window.scrollTo(0, 0);
+  }
+  $("btn-go-sortie").addEventListener("click", function(){ location.hash = "sortie"; });
+  $("btn-go-retour").addEventListener("click", function(){ location.hash = "retour"; });
+  $("btn-back").addEventListener("click", function(){ location.hash = ""; });
+  window.addEventListener("hashchange", route);
 
   // ---------- manual entry ----------
   $("btn-manual").addEventListener("click", function(){
@@ -666,15 +767,18 @@
     var bt = $("f-bt").value.trim();
     var ts = new Date().toISOString();
     var items = state.cart.slice();
-    apiPost("addScans", { nom: nom, magasin: magasin, chantier: chantier, bt: bt, items: items, ts: ts }).then(function(res){
+    var type = state.mode;
+    var label = type === "retour" ? "Retour en stock" : "Sortie";
+    apiPost("addScans", { nom: nom, magasin: magasin, chantier: chantier, bt: bt, items: items, ts: ts, type: type }).then(function(res){
       if (!res || !res.ok) throw new Error((res && res.error) || "erreur");
-      toast(items.length > 1 ? "Sortie enregistrée (" + items.length + " articles)" : "Sortie enregistrée");
+      toast(label + " enregistré" + (type === "retour" ? "" : "e") + (items.length > 1 ? " (" + items.length + " articles)" : ""));
       state.cart = [];
       renderCart();
       $("f-chantier").value = "";
       $("f-bt").value = "";
       $("f-ref-manual").value = "";
       $("manual-field").hidden = true;
+      location.hash = ""; // retour à l'accueil, prêt pour la suite
       refreshMainData();
     }).catch(function(err){
       console.error(err);
@@ -684,6 +788,7 @@
 
   renderCart();
   updateSaveEnabled();
+  route(); // affiche l'accueil (ou directement #sortie / #retour si le lien l'indique)
 })();
 </script>
 </body>
